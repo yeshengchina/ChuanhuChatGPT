@@ -793,7 +793,7 @@ def get_corresponding_file_type_by_model_name(selected_model_name):
 # def toggle_file_type(selected_model_name):
 #     return gr.Files.update(file_types=get_corresponding_file_type_by_model_name(selected_model_name))
 
-
+#new一个新的history（character）
 def new_auto_history_filename(username):
     latest_file = get_first_history_name(username)
     if latest_file:

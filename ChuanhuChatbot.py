@@ -56,9 +56,9 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
             close_btn=i18n("关闭"),
             reboot_btn=i18n("立即重启"),
         ), visible=check_update)
-
+    # 中间视作一行，包括左边的history，中间的聊天区域和右边的对话，参数，拓展等设置
     with gr.Row(equal_height=True, elem_id="chuanhu-body"):
-
+        # 左边的history区域，主要是历史对话
         with gr.Column(elem_id="menu-area"):
             with gr.Column(elem_id="chuanhu-history"):
                 with gr.Group():
@@ -114,7 +114,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     gr.HTML(get_html("func_nav.html"))
                 # gr.HTML(get_html("footer.html").format(versions=versions_html()), elem_id="footer")
                 # gr.Markdown(CHUANHU_DESCRIPTION, elem_id="chuanhu-author")
-
+        # 中间聊天区域
         with gr.Column(elem_id="chuanhu-area", scale=5):
             with gr.Column(elem_id="chatbot-area"):
                 with gr.Row(elem_id="chatbot-header"):
@@ -188,7 +188,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 with gr.Column(min_width=20, scale=1):
                                     dislikeBtn = gr.Button(
                                         "👎", elem_id="gr-dislike-btn")
-
+        # 右边的对话，参数，拓展
         with gr.Column(elem_id="toolbox-area", scale=1):
             # For CSS setting, there is an extra box. Don't remove it.
             with gr.Group(elem_id="chuanhu-toolbox"):
@@ -353,7 +353,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             "Will be here soon...\n(We hope)\n\nAnd we hope you can help us to make more extensions!")
 
                     # changeAPIURLBtn = gr.Button(i18n("🔄 切换API地址"))
-
+    # 最下面一行，设置，版本更新，夜间模式切换
     with gr.Row(elem_id="popup-wrapper"):
         with gr.Group(elem_id="chuanhu-popup"):
             with gr.Group(elem_id="chuanhu-setting"):
