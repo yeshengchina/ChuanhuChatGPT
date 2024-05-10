@@ -4,16 +4,16 @@ var currentChatName = null;
 function setChatListHeader() {
     var grHistoryRefreshBtn = gradioApp().querySelector('button#gr-history-refresh-btn');
     var grHistoryUploadBtn = gradioApp().querySelector('button#gr-history-upload-btn');
-    var grNewCharacterBtn = gradioApp().querySelector('button#gr-new-character-btn');
+    // var grNewCharacterBtn = gradioApp().querySelector('button#gr-new-character-btn');
 
     grHistoryRefreshBtn.className = "";
     grHistoryUploadBtn.className = "";
-    grNewCharacterBtn.className = "";
+    // grNewCharacterBtn.className = "";
 
 
     grHistoryRefreshBtn.innerHTML = HistoryRefreshIcon;
     grHistoryUploadBtn.innerHTML = HistoryUploadIcon;
-    grNewCharacterBtn.innerHTML = NewCharacterIcon;
+    // grNewCharacterBtn.innerHTML = NewCharacterIcon;
 }
 
 function setChatList() {

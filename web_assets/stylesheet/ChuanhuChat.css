@@ -1046,13 +1046,13 @@ input:checked + .chatbot-input-more-span {
     padding-bottom: 6px;
 }
 #gr-history-header-btns {
-    max-height: 42px;
+    max-height: 24px;
     gap: 4px;
     display: flex;
     justify-content: end;
     align-content: center;
     flex-direction: row;
-    max-width: 52px;
+    max-width: 24px;
     margin-inline: 8px;
 }
 #gr-history-header-btns button {
