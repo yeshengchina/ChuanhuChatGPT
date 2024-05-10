@@ -64,10 +64,12 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                 with gr.Group():
                     with gr.Row(elem_id="chuanhu-history-header"):
                         with gr.Row(elem_id="chuanhu-history-search-row"):
-                            with gr.Column(min_width=150, scale=2):
+                            with gr.Column(min_width=100, scale=1):
                                 historySearchTextbox = gr.Textbox(show_label=False, container=False, placeholder=i18n(
                                     "搜索（支持正则）..."), lines=1, elem_id="history-search-tb")
-                            with gr.Column(min_width=52, scale=1, elem_id="gr-history-header-btns"):
+                            with gr.Column(min_width=82, scale=1, elem_id="gr-history-header-btns"):
+                                newCharacterBtn = gr.Button(
+                                    i18n(""), elem_id="gr-new-character-btn")
                                 uploadFileBtn = gr.UploadButton(
                                     interactive=True, label="", file_types=[".json"], elem_id="gr-history-upload-btn")
                                 historyRefreshBtn = gr.Button("", elem_id="gr-history-refresh-btn")
