@@ -250,7 +250,7 @@ body.popup-open {
     display: none;
     z-index: 99999;
     width: 680px;
-    height: 420px;
+    height: 820px;
     padding: 0;
 }
 #chuanhu-popup.showBox {
