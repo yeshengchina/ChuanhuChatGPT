@@ -96,6 +96,7 @@ function initialize() {
     historySelector = gradioApp().querySelector('#history-select-dropdown');
     chuanhuPopup = gradioApp().querySelector('#chuanhu-popup');
     settingBox = gradioApp().querySelector('#chuanhu-setting');
+    characterBox = gradioApp().querySelector('#chuanhu-character');
     trainingBox = gradioApp().querySelector('#chuanhu-training');
     popupWrapper = gradioApp().querySelector('#popup-wrapper');
     chuanhuHeader = gradioApp().querySelector('#chuanhu-header');

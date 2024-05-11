@@ -5,7 +5,13 @@ function openSettingBox() {
     settingBox.classList.remove('hideBox');
     trainingBox.classList.add('hideBox');
     showMask("box");
-
+}
+function openCharacterBox() {
+    chuanhuPopup.classList.add('showBox');
+    popupWrapper.classList.add('showBox');
+    characterBox.classList.remove('hideBox');
+    settingBox.classList.add('hideBox');
+    showMask("box");
 }
 
 function openTrainingBox() {

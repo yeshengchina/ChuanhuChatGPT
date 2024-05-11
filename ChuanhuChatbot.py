@@ -365,17 +365,6 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     gr.HTML(get_html("close_btn.html").format(
                         obj="box"), elem_classes="close-btn")
                 with gr.Tabs(elem_id="chuanhu-setting-tabs"):
-                    # with gr.Tab(label=i18n("模型")):
-
-                        # model_select_dropdown = gr.Dropdown(
-                        #     label=i18n("选择模型"), choices=MODELS, multiselect=False, value=MODELS[DEFAULT_MODEL], interactive=True
-                        # )
-                        # lora_select_dropdown = gr.Dropdown(
-                        #     label=i18n("选择LoRA模型"), choices=[], multiselect=False, interactive=True, visible=False
-                        # )
-                        # with gr.Row():
-
-
                     with gr.Tab(label=i18n("高级")):
                         gr.HTML(get_html("appearance_switcher.html").format(
                             label=i18n("切换亮暗色主题")), elem_classes="insert-block", visible=False)
@@ -439,7 +428,75 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         gr.HTML(get_html("footer.html").format(
                             versions=versions_html()), elem_id="footer")
                         gr.Markdown(CHUANHU_DESCRIPTION, elem_id="description")
+            with gr.Group(elem_id="chuanhu-character"):
+                with gr.Row():
+                    gr.Markdown("## "+i18n("角色"))
+                    gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn")
+                with gr.Tabs(elem_id="chuanhu-setting-tabs"):
+                    with gr.Tab(label=i18n("高级")):
+                        gr.HTML(get_html("appearance_switcher.html").format(
+                            label=i18n("切换亮暗色主题")), elem_classes="insert-block", visible=False)
+                        use_streaming_checkbox = gr.Checkbox(
+                            label=i18n("实时传输回答"), value=True, visible=ENABLE_STREAMING_OPTION, elem_classes="switch-checkbox no-container"
+                        )
+                        language_select_dropdown = gr.Dropdown(
+                            label=i18n("选择回复语言（针对搜索&索引功能）"),
+                            choices=REPLY_LANGUAGES,
+                            multiselect=False,
+                            value=REPLY_LANGUAGES[0],
+                            elem_classes="no-container",
+                        )
+                        name_chat_method = gr.Dropdown(
+                            label=i18n("对话命名方式"),
+                            choices=HISTORY_NAME_METHODS,
+                            multiselect=False,
+                            interactive=True,
+                            value=HISTORY_NAME_METHODS[chat_name_method_index],
+                            elem_classes="no-container",
+                        )
+                        single_turn_checkbox = gr.Checkbox(label=i18n(
+                            "单轮对话"), value=False, elem_classes="switch-checkbox", elem_id="gr-single-session-cb", visible=False)
+                        # checkUpdateBtn = gr.Button(i18n("🔄 检查更新..."), visible=check_update)
 
+                        logout_btn = gr.Button("Logout", link="/logout")
+
+                    with gr.Tab(i18n("网络")):
+                        gr.Markdown(
+                            i18n("⚠️ 为保证API-Key安全，请在配置文件`config.json`中修改网络设置"), elem_id="netsetting-warning")
+                        default_btn = gr.Button(i18n("🔙 恢复默认网络设置"))
+                        # 网络代理
+                        proxyTxt = gr.Textbox(
+                            show_label=True,
+                            placeholder=i18n("未设置代理..."),
+                            label=i18n("代理地址"),
+                            value=config.http_proxy,
+                            lines=1,
+                            interactive=False,
+                            # container=False,
+                            elem_classes="view-only-textbox no-container",
+                        )
+                        # changeProxyBtn = gr.Button(i18n("🔄 设置代理地址"))
+
+                        # 优先展示自定义的api_host
+                        apihostTxt = gr.Textbox(
+                            show_label=True,
+                            placeholder="api.openai.com",
+                            label="OpenAI API-Host",
+                            value=config.api_host or shared.API_HOST,
+                            lines=1,
+                            interactive=False,
+                            # container=False,
+                            elem_classes="view-only-textbox no-container",
+                        )
+
+                    with gr.Tab(label=i18n("关于"), elem_id="about-tab"):
+                        gr.Markdown(
+                            '<img alt="Chuanhu Chat logo" src="file=web_assets/icon/any-icon-512.png" style="max-width: 144px;">')
+                        gr.Markdown("# "+i18n("川虎Chat"))
+                        gr.HTML(get_html("footer.html").format(
+                            versions=versions_html()), elem_id="footer")
+                        gr.Markdown(CHUANHU_DESCRIPTION, elem_id="description")
             with gr.Group(elem_id="chuanhu-training"):
                 with gr.Row():
                     gr.Markdown("## "+i18n("训练"))
