@@ -97,6 +97,7 @@ function initialize() {
     chuanhuPopup = gradioApp().querySelector('#chuanhu-popup');
     settingBox = gradioApp().querySelector('#chuanhu-setting');
     characterBox = gradioApp().querySelector('#chuanhu-character');
+    promptsBox = gradioApp().querySelector('#chuanhu-prompts');
     trainingBox = gradioApp().querySelector('#chuanhu-training');
     popupWrapper = gradioApp().querySelector('#popup-wrapper');
     chuanhuHeader = gradioApp().querySelector('#chuanhu-header');

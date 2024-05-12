@@ -10,6 +10,16 @@ function openCharacterBox() {
     chuanhuPopup.classList.add('showBox');
     popupWrapper.classList.add('showBox');
     characterBox.classList.remove('hideBox');
+    promptsBox.classList.add('hideBox');
+    settingBox.classList.add('hideBox');
+    showMask("box");
+}
+
+function openPromptsBox() {
+    chuanhuPopup.classList.add('showBox');
+    popupWrapper.classList.add('showBox');
+    promptsBox.classList.remove('hideBox');
+    characterBox.classList.add('hideBox');
     settingBox.classList.add('hideBox');
     showMask("box");
 }

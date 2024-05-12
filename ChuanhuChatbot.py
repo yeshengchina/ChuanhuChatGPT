@@ -529,12 +529,32 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 i18n("保存"),
                                 elem_classes="save-btn",
                             )
-                            gr.Button(
-                                i18n("取消"),
-                                elem_classes="close-btn"
-                            )
+                            gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn")
 
-                        
+            with gr.Group(elem_id="chuanhu-prompts"):
+                
+                with gr.Row():
+                    gr.Markdown("## "+i18n("Prompts"))
+                    gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn")
+                with gr.Tabs():
+                    with gr.Tab(label= "Self-introduction"):
+                        gr.Textbox(                          
+                        lines=10                           
+                        )
+                    with gr.Tab(label= "Dialog system prompt"):
+                        gr.Textbox(                          
+                        lines=10                           
+                        )
+                with gr.Row():
+                        gr.Button(
+                            i18n("保存"),
+                            elem_classes="save-btn",
+                        )
+                        gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn") 
+
             with gr.Group(elem_id="chuanhu-training"):
                 with gr.Row():
                     gr.Markdown("## "+i18n("训练"))
