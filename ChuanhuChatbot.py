@@ -186,6 +186,12 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             with gr.Column(min_width=120, scale=1):
                                 delLastBtn = gr.Button(
                                     i18n("🗑️ 删除最新对话"), elem_id="gr-dellast-btn")
+                            with gr.Column(min_width=120, scale=1):
+                                checkBtn = gr.Button(
+                                    i18n("🗑️ Check"), elem_id="gr-check-btn")
+                            with gr.Column(min_width=120, scale=1):
+                                movementBtn = gr.Button(
+                                    i18n("🗑️ Movements"), elem_id="gr-movement-btn")
                             with gr.Row(visible=False) as like_dislike_area:
                                 with gr.Column(min_width=20, scale=1):
                                     likeBtn = gr.Button(
@@ -677,7 +683,10 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         "更新失败，请尝试[手动更新](https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#手动更新)"),
                     regenerate_i18n=i18n("重新生成"),
                     deleteRound_i18n=i18n("删除这轮问答"),
+                    check_i18n=i18n("Check"),
+                    movement_i18n=i18n("Movements"),
                     renameChat_i18n=i18n("重命名该对话"),
+
                     validFileName_i18n=i18n("请输入有效的文件名，不要包含以下特殊字符："),
                     clearFileHistoryMsg_i18n=i18n("⚠️请先删除知识库中的历史文件，再尝试上传！"),
                     dropUploadMsg_i18n=i18n("释放文件以上传"),
@@ -911,7 +920,11 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         [user_name, historySearchTextbox],
         [historySelectList]
     )
+    def button_clicked():
+    
+        print("按钮被点击了！")
 
+    
     # Train
     dataset_selection.upload(handle_dataset_selection, dataset_selection, [
                              dataset_previewjson, upload_to_openai_btn, openai_train_status])

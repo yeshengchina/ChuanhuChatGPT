@@ -1,7 +1,7 @@
 
 // i18n
 
-const language = navigator.language.slice(0,2);
+const language = navigator.language.slice(0, 2);
 
 var forView_i18n;
 var deleteConfirm_i18n_pref;
@@ -27,6 +27,8 @@ function setLoclize() {
     updateFailure_i18n = gradioApp().querySelector('#updateFailure_i18n').innerText;
     regenerate_i18n = gradioApp().querySelector('#regenerate_i18n').innerText;
     deleteRound_i18n = gradioApp().querySelector('#deleteRound_i18n').innerText;
+    check_i18n = gradioApp().querySelector('#check_i18n').innerText;
+    movement_i18n = gradioApp().querySelector('#movement_i18n').innerText;
     renameChat_i18n = gradioApp().querySelector('#renameChat_i18n').innerText;
     validFileName_i18n = gradioApp().querySelector('#validFileName_i18n').innerText;
     clearFileHistoryMsg_i18n = gradioApp().querySelector('#clearFileHistoryMsg_i18n').innerText;
