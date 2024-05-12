@@ -37,6 +37,12 @@ var historySelector = null;
 var chuanhuPopup = null;
 var settingBox = null;
 var trainingBox = null;
+var promptsBox = null;
+var characterBox = null;
+var modelBox = null;
+var gestureBox = null;
+var boxes = []
+
 var popupWrapper = null;
 var chuanhuHeader = null;
 var menu = null;
@@ -49,7 +55,7 @@ var currentTime = new Date().getTime();
 let windowWidth = window.innerWidth; // 初始窗口宽度
 
 function addInit() {
-    var needInit = {chatbotIndicator, uploaderIndicator};
+    var needInit = { chatbotIndicator, uploaderIndicator };
 
     chatbotIndicator = gradioApp().querySelector('#chuanhu-chatbot > div.wrap');
     uploaderIndicator = gradioApp().querySelector('#upload-index-file > div.wrap');
@@ -98,7 +104,15 @@ function initialize() {
     settingBox = gradioApp().querySelector('#chuanhu-setting');
     characterBox = gradioApp().querySelector('#chuanhu-character');
     promptsBox = gradioApp().querySelector('#chuanhu-prompts');
+    modelBox = gradioApp().querySelector('#chuanhu-model');
+    gestureBox = gradioApp().querySelector('#chuanhu-gesture');
     trainingBox = gradioApp().querySelector('#chuanhu-training');
+    boxes.push({ id: 1, name: settingBox });
+    boxes.push({ id: 2, name: trainingBox });
+    boxes.push({ id: 3, name: characterBox });
+    boxes.push({ id: 4, name: promptsBox });
+    boxes.push({ id: 5, name: modelBox });
+    boxes.push({ id: 6, name: gestureBox });
     popupWrapper = gradioApp().querySelector('#popup-wrapper');
     chuanhuHeader = gradioApp().querySelector('#chuanhu-header');
     menu = gradioApp().querySelector('#menu-area');
@@ -149,7 +163,7 @@ function gradioApp() {
     const elem = elems.length == 0 ? document : elems[0];
 
     if (elem !== document) {
-        elem.getElementById = function(id) {
+        elem.getElementById = function (id) {
             return document.getElementById(id);
         };
     }
@@ -382,7 +396,7 @@ function setChatbotHeight() {
 }
 function setChatbotScroll() {
     var scrollHeight = chatbotWrap.scrollHeight;
-    chatbotWrap.scrollTo(0,scrollHeight)
+    chatbotWrap.scrollTo(0, scrollHeight)
 }
 
 function setAutocomplete() {
@@ -473,7 +487,7 @@ window.addEventListener("DOMContentLoaded", function () {
     isInIframe = (window.self !== window.top);
     historyLoaded = false;
 });
-window.addEventListener('resize', ()=>{
+window.addEventListener('resize', () => {
     // setChatbotHeight();
     // updateVH();
     windowWidth = window.innerWidth;
@@ -486,7 +500,7 @@ window.addEventListener('orientationchange', (event) => {
     setPopupBoxPosition();
     adjustSide();
 });
-window.addEventListener('scroll', ()=>{setPopupBoxPosition();});
+window.addEventListener('scroll', () => { setPopupBoxPosition(); });
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", adjustDarkMode);
 
 // console suprise
@@ -520,5 +534,5 @@ let description = `
 GitHub repository: [https://github.com/GaiZhenbiao/ChuanhuChatGPT]\n
 Enjoy our project!\n
 `
-console.log(`%c${makeML(ChuanhuInfo)}`,styleTitle1);
+console.log(`%c${makeML(ChuanhuInfo)}`, styleTitle1);
 console.log(`%c${description}`, styleDesc1);

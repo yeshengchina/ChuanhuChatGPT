@@ -1,17 +1,25 @@
 
+
+
 function openSettingBox() {
     chuanhuPopup.classList.add('showBox');
     popupWrapper.classList.add('showBox');
     settingBox.classList.remove('hideBox');
-    trainingBox.classList.add('hideBox');
+
+    otherBoxes = boxes.filter(box => box.id != 1);
+    otherBoxes.forEach(box => {
+        box.name.classList.add('hideBox');
+    });
     showMask("box");
 }
 function openCharacterBox() {
     chuanhuPopup.classList.add('showBox');
     popupWrapper.classList.add('showBox');
     characterBox.classList.remove('hideBox');
-    promptsBox.classList.add('hideBox');
-    settingBox.classList.add('hideBox');
+    otherBoxes = boxes.filter(box => box.id != 3);
+    otherBoxes.forEach(box => {
+        box.name.classList.add('hideBox');
+    });
     showMask("box");
 }
 
@@ -19,8 +27,10 @@ function openPromptsBox() {
     chuanhuPopup.classList.add('showBox');
     popupWrapper.classList.add('showBox');
     promptsBox.classList.remove('hideBox');
-    characterBox.classList.add('hideBox');
-    settingBox.classList.add('hideBox');
+    otherBoxes = boxes.filter(box => box.id != 4);
+    otherBoxes.forEach(box => {
+        box.name.classList.add('hideBox');
+    });
     showMask("box");
 }
 
@@ -28,9 +38,36 @@ function openTrainingBox() {
     chuanhuPopup.classList.add('showBox');
     popupWrapper.classList.add('showBox');
     trainingBox.classList.remove('hideBox');
-    settingBox.classList.add('hideBox');
+    otherBoxes = boxes.filter(box => box.id != 2);
+    otherBoxes.forEach(box => {
+        box.name.classList.add('hideBox');
+    });
     showMask("box");
 }
+
+
+function openModelBox() {
+    chuanhuPopup.classList.add('showBox');
+    popupWrapper.classList.add('showBox');
+    modelBox.classList.remove('hideBox');
+    otherBoxes = boxes.filter(box => box.id != 5);
+    otherBoxes.forEach(box => {
+        box.name.classList.add('hideBox');
+    });
+    showMask("box");
+}
+
+function openGestureBox() {
+    chuanhuPopup.classList.add('showBox');
+    popupWrapper.classList.add('showBox');
+    gestureBox.classList.remove('hideBox');
+    otherBoxes = boxes.filter(box => box.id != 6);
+    otherBoxes.forEach(box => {
+        box.name.classList.add('hideBox');
+    });
+    showMask("box");
+}
+
 
 function openChatMore() {
     chatbotArea.classList.add('show-chat-more');

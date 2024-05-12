@@ -111,7 +111,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 i18n("💾 保存对话"), elem_id="gr-history-save-btn")
                             exportMarkdownBtn = gr.Button(
                                 i18n("📝 导出为 Markdown"), elem_id="gr-markdown-export-btn")
-
+        # 最下面一行，设置，版本更新，夜间模式切换
             with gr.Column(elem_id="chuanhu-menu-footer"):
                 with gr.Row(elem_id="chuanhu-func-nav"):
                     gr.HTML(get_html("func_nav.html"))
@@ -151,11 +151,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             gr.HTML(get_html("chatbot_more.html").format(
                                 single_turn_label=i18n("单轮对话"),
                                 websearch_label=i18n("在线搜索"),
-                                upload_file_label=i18n("上传文件"),
+                                upload_file_label=i18n("model"),
                                 uploaded_files_label=i18n("知识库文件"),
                                 uploaded_files_tip=i18n("在工具箱中管理知识库文件")
                             ))
+                            
                             with gr.Row(elem_id="chatbot-input-tb-row"):
+                                
                                 with gr.Column(min_width=225, scale=12):
                                     user_input = gr.Textbox(
                                         elem_id="user-input-tb",
@@ -356,7 +358,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             "Will be here soon...\n(We hope)\n\nAnd we hope you can help us to make more extensions!")
 
                     # changeAPIURLBtn = gr.Button(i18n("🔄 切换API地址"))
-    # 最下面一行，设置，版本更新，夜间模式切换
+    # 弹出窗口
     with gr.Row(elem_id="popup-wrapper"):
         with gr.Group(elem_id="chuanhu-popup"):
             with gr.Group(elem_id="chuanhu-setting"):
@@ -524,7 +526,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        with gr.Row():
+                        with gr.Row(elem_id="save-btn"):
                             gr.Button(
                                 i18n("保存"),
                                 elem_classes="save-btn",
@@ -547,11 +549,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         gr.Textbox(                          
                         lines=10                           
                         )
-                with gr.Row():
-                        gr.Button(
+                with gr.Row(elem_id="save-btn"):
+                        prompt_save_btn  = gr.Button(
                             i18n("保存"),
-                            elem_classes="save-btn",
+                            size = "sm",
+                            elem_id="save-btn",
                         )
+                        
                         gr.HTML(get_html("close_btn.html").format(
                         obj="box"), elem_classes="close-btn") 
 
@@ -589,6 +593,75 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 i18n("取消所有任务"))
                             add_to_models_btn = gr.Button(
                                 i18n("添加训练好的模型到模型列表"), interactive=False)
+            with gr.Group(elem_id="chuanhu-model"):
+                with gr.Row():
+                    gr.Markdown("## "+i18n("Model设置"))
+                    gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn")
+                with gr.Tabs(elem_id="chuanhu-setting-tabs"):
+                    with gr.Tab(label=i18n("Open AI")):
+                        model_name = gr.Textbox(
+                            show_label=True,                          
+                            label=i18n("Model Name"),
+                            lines=1,
+                            elem_classes="view-only-textbox no-container",
+                        )
+                        temperature = gr.Textbox(
+                            show_label=True,                          
+                            label=i18n("Temperature"),
+                            lines=1,
+                            elem_classes="view-only-textbox no-container",
+                        )
+                    with gr.Tab(label=i18n("Anthropic")):
+                        model_name = gr.Textbox(
+                            show_label=True,                          
+                            label=i18n("Model Name"),
+                            lines=1,
+                            elem_classes="view-only-textbox no-container",
+                        )
+                        temperature = gr.Textbox(
+                            show_label=True,                          
+                            label=i18n("Temperature"),
+                            lines=1,
+                            elem_classes="view-only-textbox no-container",
+                        )    
+                    with gr.Tab(label=i18n("Google")):
+                        model_name = gr.Textbox(
+                            show_label=True,                          
+                            label=i18n("Model Name"),
+                            lines=1,
+                            elem_classes="view-only-textbox no-container",
+                        )
+                        temperature = gr.Textbox(
+                            show_label=True,                          
+                            label=i18n("Temperature"),
+                            lines=1,
+                            elem_classes="view-only-textbox no-container",
+                        )
+                    
+            with gr.Group(elem_id="chuanhu-gesture"):
+                with gr.Row():
+                    gr.Markdown("## "+i18n("Gesture设置"))
+                    gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn")
+                with gr.Column():
+                    with gr.Row():
+                        gr.Markdown("Name")
+                        gr.Markdown("Description")
+                        gr.Markdown("是否选中")
+                    with gr.Row():
+                        gr.Textbox("Name",show_label=False,interactive=True)
+                        gr.Textbox("Description",show_label=False,interactive=True)
+                        gr.Checkbox("激活",show_label=False,interactive=True)
+                    with gr.Row():
+                        gr.Textbox("Name",show_label=False,interactive=True)
+                        gr.Textbox("Description",show_label=False,interactive=True)
+                        gr.Checkbox("激活",show_label=False,interactive=True)
+                    with gr.Row():
+                        gr.Textbox("Name",show_label=False,interactive=True)
+                        gr.Textbox("Description",show_label=False,interactive=True)
+                        gr.Checkbox("激活",show_label=False,interactive=True)
+
 
             with gr.Group(elem_id="web-config", visible=False):
                 gr.HTML(get_html('web_config.html').format(
@@ -620,7 +693,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     visible=False, elem_classes="invisible-btn", elem_id="change-online-search-btn")
                 historySelectBtn = gr.Button(
                     visible=False, elem_classes="invisible-btn", elem_id="history-select-btn")  # Not used
-
+                
     # https://github.com/gradio-app/gradio/pull/3296
 
     def create_greeting(request: gr.Request):

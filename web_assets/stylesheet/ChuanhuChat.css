@@ -163,6 +163,11 @@ body.popup-open {
     color: var(--body-text-color-subdued);
     margin-bottom: 8px;
 }
+#save-btn {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: center
+}
 
 #chatbot-ctrl-btns {
     align-self: end;
@@ -732,9 +737,9 @@ input:checked + .chatbot-input-more-span {
 
 #toolbox-area .gradio-group > div.styler > .gradio-row > .close-btn,
 #chuanhu-popup .gradio-group > div.styler > .gradio-row > .close-btn {
-    max-width: 28px;
+    max-width: 100px;
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 
