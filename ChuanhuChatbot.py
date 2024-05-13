@@ -69,10 +69,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                     "搜索（支持正则）..."), lines=1, elem_id="history-search-tb")
                             with gr.Column(min_width=82, scale=0, elem_id="gr-history-header-btns"):
                                 
-                                gr.HTML(get_html("new_character.html"))
+                                # gr.HTML(get_html("new_character.html"))
+                        #         gr.HTML(get_html("close_btn.html").format(
+                        # obj="toolbox"), elem_classes="close-btn")
+                                newCharacterBtn = gr.Button("", elem_id="gr-history-refresh-btn")
                                 uploadFileBtn = gr.UploadButton(
                                     interactive=True, label="", file_types=[".json"], elem_id="gr-history-upload-btn")
-                                historyRefreshBtn = gr.Button("", elem_id="gr-history-refresh-btn")
+                                # historyRefreshBtn = gr.Button("", elem_id="gr-history-refresh-btn",visible=False)
                                 
 
 
@@ -780,7 +783,13 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         outputs=[historySelectList],
         show_progress=False,
     )
-
+    
+    
+    newCharacterBtn.click(fn=lambda:None,js="""
+        function() {    
+            openCharacterBox();
+        }
+        """)
     # Chatbot
     cancelBtn.click(interrupt, [current_model], [])
 
@@ -900,7 +909,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         [],
         show_progress=True,
     )
-    historyRefreshBtn.click(**refresh_history_args)
+    # historyRefreshBtn.click(**refresh_history_args)
     historyDeleteBtn.click(delete_chat_history, [current_model, historySelectList], [status_display, historySelectList, chatbot], js='(a,b,c)=>{return showConfirmationDialog(a, b, c);}').then(
         reset,
         inputs=[current_model, retain_system_prompt_checkbox],
@@ -920,10 +929,6 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         [user_name, historySearchTextbox],
         [historySelectList]
     )
-    def button_clicked():
-    
-        print("按钮被点击了！")
-
     
     # Train
     dataset_selection.upload(handle_dataset_selection, dataset_selection, [
