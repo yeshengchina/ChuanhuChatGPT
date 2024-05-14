@@ -310,6 +310,9 @@ class BaseLLMModel:
         self.logit_bias = self.default_logit_bias
         self.user_identifier = user
 
+        self.character_introduction=""
+        self.character_dialog_prompt = ""
+        self.character_gesture_prompt = ""
         self.character_setting = {"Role":"",
                                   "Nickname":"",
                                   "Background":"",
@@ -925,7 +928,11 @@ class BaseLLMModel:
         self.character_setting["Goal"] = character_goal_txtbox
         logging.info(f"保存角色设定为：{self.character_setting}")
         save_file(character_role_txtbox, self, chatbot)
-        
+    def save_character_prompts(self,chatbot,character_introduction,character_dialogue_prompt,character_gesture_prompt):
+        self.character_introduction = character_introduction
+        self.character_dialog_prompt = character_dialogue_prompt
+        self.character_gesture_prompt = character_gesture_prompt
+        save_file(self.character_setting["Role"], self, chatbot)
 
     def delete_first_conversation(self):
         if self.history:
@@ -1077,6 +1084,9 @@ class BaseLLMModel:
             self.user_identifier = saved_json.get("user_identifier", self.user_name)
             self.metadata = saved_json.get("metadata", self.metadata)
             self.character_setting = saved_json.get("character_setting", self.character_setting)
+            self.character_dialog_prompt = saved_json.get("character_dialog_prompt", self.character_dialog_prompt)
+            self.character_gesture_prompt = saved_json.get("character_gesture_prompt", self.character_gesture_prompt)
+            self.character_introduction = saved_json.get("character_introduction", self.character_introduction)
             self.chatbot = saved_json["chatbot"]
             return (
                 os.path.basename(self.history_file_path)[:-5],

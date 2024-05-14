@@ -793,6 +793,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     
         
     character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox],[])
+    
+    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,systemPromptTxt],[])
     # Chatbot
     cancelBtn.click(interrupt, [current_model], [])
 

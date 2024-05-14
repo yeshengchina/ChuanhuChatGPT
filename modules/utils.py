@@ -73,6 +73,8 @@ def retry(current_model, *args):
 
 def save_character_setting(current_model, *args):
     return current_model.save_character_setting(*args)
+def save_character_prompts(current_model, *args):
+    return current_model.save_character_prompts(*args)
 
 def delete_first_conversation(current_model, *args):
     return current_model.delete_first_conversation(*args)
@@ -409,6 +411,9 @@ def save_file(filename, model, chatbot):
         "user_identifier": model.user_identifier,
         "metadata": model.metadata,
         "character_setting": model.character_setting,
+        "character_introduction": model.character_introduction,
+        "character_dialog_prompt":model.character_dialog_prompt,
+        "character_gesture_prompt":model.character_gesture_prompt,
     }
     if not filename == os.path.basename(filename):
         history_file_path = filename
