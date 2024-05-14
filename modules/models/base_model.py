@@ -310,9 +310,21 @@ class BaseLLMModel:
         self.logit_bias = self.default_logit_bias
         self.user_identifier = user
 
+        self.character_setting = {"Role":"",
+                                  "Nickname":"",
+                                  "Background":"",
+                                  "Personality":"",
+                                  "Emotions":"",
+                                  "Voice":"",
+                                  "DialogStyle":"",
+                                  "Knowledge":"",
+                                  "Facial expression":"",
+                                  "Body movements":"",
+                                  "Goal":""}
+
         self.metadata = {}
 
-    def get_answer_stream_iter(self):
+    def predictget_answer_stream_iter(self):
         """Implement stream prediction.
         Conversations are stored in self.history, with the most recent question in OpenAI format.
         Should return a generator that yields the next word (str) in the answer.
@@ -612,7 +624,7 @@ class BaseLLMModel:
                 + f"{self.user_name}"
                 + "的输入为："
                 + colorama.Fore.BLUE
-                + f"{inputs}"
+                + f"{inputs}" + f"{chatbot}"
                 + colorama.Style.RESET_ALL
             )
         if should_check_token_count:
@@ -899,6 +911,21 @@ class BaseLLMModel:
             self.logit_bias,
             self.user_identifier,
         )
+    def save_character_setting(self,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox):
+        self.character_setting["Role"] = character_role_txtbox
+        self.character_setting["Nickname"] = character_nickname_txtbox
+        self.character_setting["Background"] = character_background_txtbox
+        self.character_setting["Personality"] = character_personality_txtbox
+        self.character_setting["Emotions"] = character_emotions_txtbox
+        self.character_setting["Voice"] = character_voice_txtbox
+        self.character_setting["DialogStyle"] = character_dialogstyle_txtbox
+        self.character_setting["Knowledge"] = character_knowledge_txtbox
+        self.character_setting["Facial expression"] = character_facialexpression_txtbox
+        self.character_setting["Body movements"] = character_bodymovements_txtbox
+        self.character_setting["Goal"] = character_goal_txtbox
+        logging.info(f"保存角色设定为：{self.character_setting}")
+        save_file(character_role_txtbox, self, chatbot)
+        
 
     def delete_first_conversation(self):
         if self.history:
@@ -1049,6 +1076,7 @@ class BaseLLMModel:
             self.logit_bias = saved_json.get("logit_bias", self.logit_bias)
             self.user_identifier = saved_json.get("user_identifier", self.user_name)
             self.metadata = saved_json.get("metadata", self.metadata)
+            self.character_setting = saved_json.get("character_setting", self.character_setting)
             self.chatbot = saved_json["chatbot"]
             return (
                 os.path.basename(self.history_file_path)[:-5],

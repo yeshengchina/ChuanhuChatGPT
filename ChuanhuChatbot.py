@@ -447,96 +447,96 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                 with gr.Row():
                     with gr.Column():
                         
-                        gr.Textbox(
+                        character_role_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Role"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=1,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_nickname_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Nick Name"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=1,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_background_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Background"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=3,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_personality_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Personality"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=3,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_emotions_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Emotions"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=2,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_voice_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Voice"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=1,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_dialogstyle_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("DialogStyle"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=3,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_knowledge_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Knowledge"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=3,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_facialexpression_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Facial expression"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=3,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_bodymovements_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Body movements"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=3,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
-                        gr.Textbox(
+                        character_goal_txtbox = gr.Textbox(
                             show_label=True,
                             label=i18n("Goal"),
-                            # value=config.http_proxy,
+                            interactive=True,
                             lines=3,
                             # container=False,
                             elem_classes="view-only-textbox no-container",
                         )
                         with gr.Row(elem_id="save-btn"):
-                            gr.Button(
+                            character_save_btn = gr.Button(
                                 i18n("保存"),
                                 elem_classes="save-btn",
                             )
@@ -790,6 +790,9 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
             openCharacterBox();
         }
         """)
+    
+        
+    character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox],[])
     # Chatbot
     cancelBtn.click(interrupt, [current_model], [])
 
@@ -1035,4 +1038,5 @@ if __name__ == "__main__":
         auth=auth_from_conf if authflag else None,
         favicon_path="./web_assets/favicon.ico",
         inbrowser=autobrowser and not dockerflag,  # 禁止在docker下开启inbrowser
+        debug=True
     )
