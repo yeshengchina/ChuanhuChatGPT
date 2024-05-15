@@ -311,6 +311,7 @@ class BaseLLMModel:
         self.user_identifier = user
 
         self.character_introduction=""
+        self.character_activedialog_prompt=""
         self.character_dialog_prompt = ""
         self.character_gesture_prompt = ""
         self.character_setting = {"Role":"",
@@ -608,6 +609,7 @@ class BaseLLMModel:
         reply_language="中文",
         should_check_token_count=True,
     ):  # repetition_penalty, top_k
+        logging.debug("invoke predict")
         status_text = "开始生成回答……"
         if type(inputs) == list:
             logging.info(
@@ -627,7 +629,7 @@ class BaseLLMModel:
                 + f"{self.user_name}"
                 + "的输入为："
                 + colorama.Fore.BLUE
-                + f"{inputs}" + f"{chatbot}"
+                + f"{inputs}"
                 + colorama.Style.RESET_ALL
             )
         if should_check_token_count:
@@ -651,6 +653,7 @@ class BaseLLMModel:
             reply_language=reply_language,
             chatbot=chatbot,
         )
+        logging.debug(f"limit_context: {limited_context},fake_inputs: {fake_inputs},display_append: {display_append},inputs: {inputs},chatbot: {chatbot}")
         yield chatbot + [(fake_inputs, "")], status_text
 
         if (
@@ -928,8 +931,9 @@ class BaseLLMModel:
         self.character_setting["Goal"] = character_goal_txtbox
         logging.info(f"保存角色设定为：{self.character_setting}")
         save_file(character_role_txtbox, self, chatbot)
-    def save_character_prompts(self,chatbot,character_introduction,character_dialogue_prompt,character_gesture_prompt):
+    def save_character_prompts(self,chatbot,character_introduction,character_activedialogue_prompt,character_dialogue_prompt,character_gesture_prompt):
         self.character_introduction = character_introduction
+        self.character_activedialog_prompt = character_activedialogue_prompt
         self.character_dialog_prompt = character_dialogue_prompt
         self.character_gesture_prompt = character_gesture_prompt
         save_file(self.character_setting["Role"], self, chatbot)
@@ -1014,6 +1018,27 @@ class BaseLLMModel:
             filename += ".md"
         save_file(filename, self, chatbot)
 
+    def character_select(self,inputs,
+        chatbot,
+        stream,
+        use_websearch,
+        files,
+        reply_language):
+        logging.debug(f"{self.user_name} 选中角色，切换prompt……")
+        # self.system_prompt = self.character_activedialog_prompt
+        iter = self.predict(inputs,
+                    chatbot,
+                    stream,
+                    use_websearch,
+                    files,
+                    reply_language,
+                    should_check_token_count = True)
+        for i in iter:
+            yield i
+        
+        # self.system_prompt = self.character_dialog_prompt
+
+        
     def load_chat_history(self, new_history_file_path=None):
         logging.debug(f"{self.user_name} 加载对话历史中……")
         if new_history_file_path is not None:
@@ -1085,9 +1110,12 @@ class BaseLLMModel:
             self.metadata = saved_json.get("metadata", self.metadata)
             self.character_setting = saved_json.get("character_setting", self.character_setting)
             self.character_dialog_prompt = saved_json.get("character_dialog_prompt", self.character_dialog_prompt)
+            self.character_activedialog_prompt = saved_json.get("character_activedialog_prompt", self.character_activedialog_prompt)
             self.character_gesture_prompt = saved_json.get("character_gesture_prompt", self.character_gesture_prompt)
             self.character_introduction = saved_json.get("character_introduction", self.character_introduction)
             self.chatbot = saved_json["chatbot"]
+            logging.debug(f"character_setting:{self.character_setting} ")
+            logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
             return (
                 os.path.basename(self.history_file_path)[:-5],
                 saved_json["system"],
@@ -1103,6 +1131,22 @@ class BaseLLMModel:
                 self.frequency_penalty,
                 self.logit_bias,
                 self.user_identifier,
+                self.character_introduction,
+                self.character_activedialog_prompt,
+                self.character_dialog_prompt,
+                self.character_gesture_prompt,
+
+                self.character_setting["Role"],
+                self.character_setting["Nickname"],
+                self.character_setting["Background"],
+                self.character_setting["Personality"],
+                self.character_setting["Emotions"],
+                self.character_setting["Voice"],
+                self.character_setting["DialogStyle"],
+                self.character_setting["Knowledge"],
+                self.character_setting["Facial expression"],
+                self.character_setting["Body movements"],
+                self.character_setting["Goal"]
             )
         except:
             # 没有对话历史或者对话历史解析失败
@@ -1111,7 +1155,8 @@ class BaseLLMModel:
             return (
                 os.path.basename(self.history_file_path),
                 self.system_prompt,
-                gr.update(value=[]),
+
+                gr.update(value=[]),#chatbot
                 self.single_turn,
                 self.temperature,
                 self.top_p,
@@ -1123,6 +1168,22 @@ class BaseLLMModel:
                 self.frequency_penalty,
                 self.logit_bias,
                 self.user_identifier,
+                self.character_introduction,
+                self.character_activedialog_prompt,
+                self.character_dialog_prompt,
+                self.character_gesture_prompt,
+
+                self.character_setting["Role"],
+                self.character_setting["Nickname"],
+                self.character_setting["Background"],
+                self.character_setting["Personality"],
+                self.character_setting["Emotions"],
+                self.character_setting["Voice"],
+                self.character_setting["DialogStyle"],
+                self.character_setting["Knowledge"],
+                self.character_setting["Facial expression"],
+                self.character_setting["Body movements"],
+                self.character_setting["Goal"]
             )
 
     def delete_chat_history(self, filename):
@@ -1148,7 +1209,8 @@ class BaseLLMModel:
                 get_history_list(self.user_name),
                 [],
             )
-
+    def get_character_introduction(self):
+        return self.character_introduction
     def auto_load(self):
         self.new_auto_history_filename()
         return self.load_chat_history()

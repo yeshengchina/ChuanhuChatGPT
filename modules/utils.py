@@ -53,10 +53,13 @@ def set_key(current_model, *args):
 def load_chat_history(current_model, *args):
     return current_model.load_chat_history(*args)
 
+def character_select(current_model, *args):
+    iter = current_model.predict(*args)
+    for i in iter:
+        yield i
 
 def delete_chat_history(current_model, *args):
     return current_model.delete_chat_history(*args)
-
 
 def interrupt(current_model, *args):
     return current_model.interrupt(*args)
@@ -412,6 +415,7 @@ def save_file(filename, model, chatbot):
         "metadata": model.metadata,
         "character_setting": model.character_setting,
         "character_introduction": model.character_introduction,
+        "character_activedialog_prompt": model.character_activedialog_prompt,
         "character_dialog_prompt":model.character_dialog_prompt,
         "character_gesture_prompt":model.character_gesture_prompt,
     }

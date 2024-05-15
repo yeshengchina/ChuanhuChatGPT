@@ -36,6 +36,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     assert type(my_api_key) == str
     user_api_key = gr.State(my_api_key)
     current_model = gr.State()
+    
 
     topic = gr.State(i18n("未命名对话历史记录"))
 
@@ -551,11 +552,21 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         obj="box"), elem_classes="close-btn")
                 with gr.Tabs():
                     with gr.Tab(label= "Self-introduction"):
-                        gr.Textbox(                          
+                        
+                        character_introduction_prompt = gr.Textbox(                         
+                        lines=10                           
+                        )
+                        
+                    with gr.Tab(label= "Active Dialog system prompt"):
+                        character_activedialogsystem_prompt = gr.Textbox(                        
                         lines=10                           
                         )
                     with gr.Tab(label= "Dialog system prompt"):
-                        gr.Textbox(                          
+                        character_dialogsystem_prompt = gr.Textbox(                          
+                        lines=10                           
+                        )
+                    with gr.Tab(label= "Gesture prompt"):
+                        character_gesture_prompt = gr.Textbox(                         
                         lines=10                           
                         )
                 with gr.Row(elem_id="save-btn"):
@@ -718,14 +729,40 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                 value=f"", visible=False), ""
         current_model = get_model(
             model_name=MODELS[DEFAULT_MODEL], access_key=my_api_key, user_name=user_name)[0]
+        
         if not hide_history_when_not_logged_in or user_name:
             loaded_stuff = current_model.auto_load()
         else:
             current_model.new_auto_history_filename()
-            loaded_stuff = [gr.update(), gr.update(), gr.Chatbot(label=MODELS[DEFAULT_MODEL]), current_model.single_turn, current_model.temperature, current_model.top_p, current_model.n_choices, current_model.stop_sequence, current_model.token_upper_limit, current_model.max_generation_token, current_model.presence_penalty, current_model.frequency_penalty, current_model.logit_bias, current_model.user_identifier]
+            loaded_stuff = [gr.update(), gr.update(), 
+                            
+                            gr.Chatbot(label=MODELS[DEFAULT_MODEL]), current_model.single_turn, current_model.temperature, current_model.top_p, current_model.n_choices, current_model.stop_sequence, current_model.token_upper_limit, current_model.max_generation_token, current_model.presence_penalty, current_model.frequency_penalty, current_model.logit_bias, current_model.user_identifier,
+                            current_model.character_introduction,
+                            current_model.character_activedialog_prompt,
+                            current_model.character_dialog_prompt,
+                            current_model.character_gesture_prompt,
+
+                            current_model.character_setting["Role"],
+                            current_model.character_setting["Nickname"],
+                            current_model.character_setting["Background"],
+                            current_model.character_setting["Personality"],
+                            current_model.character_setting["Emotions"],
+                            current_model.character_setting["Voice"],
+                            current_model.character_setting["DialogStyle"],
+                            current_model.character_setting["Knowledge"],
+                            current_model.character_setting["Facial expression"],
+                            current_model.character_setting["Body movements"],
+                            current_model.character_setting["Goal"]
+                            ]
+            
         return user_info, user_name, current_model, toggle_like_btn_visibility(DEFAULT_MODEL), *loaded_stuff, init_history_list(user_name, prepend=current_model.history_file_path.rstrip(".json"))
     demo.load(create_greeting, inputs=None, outputs=[
-              user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, historySelectList], api_name="load")
+              user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, 
+            
+              chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, historySelectList,
+              character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt, 
+              character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox
+              ], api_name="load")
     chatgpt_predict_args = dict(
         fn=predict,
         inputs=[
@@ -772,6 +809,22 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         inputs=[current_model, historySelectList],
         outputs=[saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt],
     )
+    character_select_args = dict(
+        fn=character_select,
+        inputs=[
+            current_model,
+            gr.State("根据你的身份主动发起对话"),
+            chatbot,
+            use_streaming_checkbox,
+            use_websearch_checkbox,
+            index_files,
+            language_select_dropdown,
+        ],
+        outputs=[chatbot, status_display]
+    )
+    # character_create_args = dict(
+    #     fn=create_character, inputs=[current_model], outputs=[saveFileName]
+    # )
 
     refresh_history_args = dict(
         fn=get_history_list, inputs=[user_name], outputs=[historySelectList]
@@ -794,7 +847,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         
     character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox],[])
     
-    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,systemPromptTxt],[])
+    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_dialogsystem_prompt,character_gesture_prompt],[])
     # Chatbot
     cancelBtn.click(interrupt, [current_model], [])
 
@@ -922,7 +975,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         show_progress=True,
         js='(a,b)=>{return clearChatbot(a,b);}',
     )
-    historySelectList.select(**load_history_from_file_args)
+    historySelectList.select(**load_history_from_file_args).then(**character_select_args)
     uploadFileBtn.upload(upload_chat_history, [current_model, uploadFileBtn], [
                         saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt]).then(**refresh_history_args)
     historyDownloadBtn.click(None, [
@@ -1039,6 +1092,5 @@ if __name__ == "__main__":
         share=share,
         auth=auth_from_conf if authflag else None,
         favicon_path="./web_assets/favicon.ico",
-        inbrowser=autobrowser and not dockerflag,  # 禁止在docker下开启inbrowser
-        debug=True
+        inbrowser=autobrowser and not dockerflag  # 禁止在docker下开启inbrowser
     )
