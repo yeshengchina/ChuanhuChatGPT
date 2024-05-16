@@ -671,19 +671,28 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         gr.Markdown("是否选中")
                     with gr.Row():
                         gr.Textbox("Banging Head",show_label=False,interactive=False)
-                        gr.Textbox("<Jacob> banging your head lightly with his knuckles",show_label=False,interactive=False)
+                        bangingHeadDesc = gr.Textbox("<Jacob> banging your head lightly with his knuckles",show_label=False,interactive=False)
                         bangingHead = gr.Checkbox("",show_label=False,interactive=True)
                     with gr.Row():
                         gr.Textbox("finger-stamp",show_label=False,interactive=False)
-                        gr.Textbox("用手指戳角色的肚子",show_label=False,interactive=False)
+                        fingerStampDesc = gr.Textbox("用手指戳角色的肚子",show_label=False,interactive=False)
                         fingerStamp = gr.Checkbox("",show_label=False,interactive=True)
+                    gestureState = gr.State("")
                     bangingHead.select(checkboxSelect,
-                                       [fingerStamp],
-                                       [fingerStamp])
+                                       [fingerStamp,bangingHeadDesc],
+                                       [fingerStamp,gestureState])
                     fingerStamp.select(checkboxSelect,
-                                       [bangingHead],
-                                       [bangingHead])
-
+                                       [bangingHead,fingerStampDesc],
+                                       [bangingHead,gestureState])
+                with gr.Row():
+                    gesture_send_btn  = gr.Button(
+                        i18n("发送"),
+                        size = "sm",
+                        elem_id="save-btn",
+                    )
+                    
+                    gr.HTML(get_html("close_btn.html").format(
+                    obj="box"), elem_classes="close-btn") 
 
             with gr.Group(elem_id="web-config", visible=False):
                 gr.HTML(get_html('web_config.html').format(
@@ -844,6 +853,12 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         show_progress=False,
     )
     
+    gesture_send_btn.click(send_gesture, [current_model], []).then(fn=lambda:None,js="""
+        function() {    
+            closeBtnClick("box");
+        }
+        """)
+
     
     newCharacterBtn.click(fn=lambda:None,js="""
         function() {    
