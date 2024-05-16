@@ -814,10 +814,11 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                 ],
     )
     character_select_args = dict(
+        
         fn=character_select,
         inputs=[
             current_model,
-            gr.State("根据你的身份主动发起对话"),
+            chatbot,
             chatbot,
             use_streaming_checkbox,
             use_websearch_checkbox,
@@ -849,7 +850,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         """)
     
         
-    character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox],[])
+    character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox],[]).then(**refresh_history_args)
     
     prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt],[])
     # Chatbot
@@ -958,13 +959,18 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     )
 
     # S&L
-    renameHistoryBtn.click(
-        rename_chat_history,
-        [current_model, saveFileName, chatbot],
-        [historySelectList],
-        show_progress=True,
-        js='(a,b,c,d)=>{return saveChatHistory(a,b,c,d);}'
-    )
+    # renameHistoryBtn.click(
+    #     rename_chat_history,
+    #     [current_model, saveFileName, chatbot],
+    #     [historySelectList],
+    #     show_progress=True,
+    #     js='(a,b,c,d)=>{return saveChatHistory(a,b,c,d);}'
+    # )
+    renameHistoryBtn.click(fn=lambda:None,js="""
+        function() {    
+            openCharacterBox();
+        }
+        """)
     exportMarkdownBtn.click(
         export_markdown,
         [current_model, saveFileName, chatbot],

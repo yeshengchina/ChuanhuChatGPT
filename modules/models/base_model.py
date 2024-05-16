@@ -1212,7 +1212,7 @@ class BaseLLMModel:
     def get_character_introduction(self):
         return self.character_introduction
     def auto_load(self):
-        self.new_auto_history_filename()
+        # self.new_auto_history_filename()
         return self.load_chat_history()
 
     def new_auto_history_filename(self):

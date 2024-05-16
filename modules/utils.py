@@ -53,10 +53,20 @@ def set_key(current_model, *args):
 def load_chat_history(current_model, *args):
     return current_model.load_chat_history(*args)
 
-def character_select(current_model, *args):
-    iter = current_model.predict(*args)
+def character_select(current_model, chatbot,*args):
+    userinput = ""
+    if len(chatbot) == 0:
+        current_model.system_prompt = current_model.character_introduction
+        userinput = "Please introduce yourself" 
+    else:
+        current_model.system_prompt = current_model.character_activedialog_prompt
+        userinput = "initiate conversations based on who you are"
+        new_args = (userinput,) + args
+    
+    iter = current_model.predict(*new_args)
     for i in iter:
         yield i
+    current_model.system_prompt = current_model.character_dialog_prompt
 
 def delete_chat_history(current_model, *args):
     return current_model.delete_chat_history(*args)
