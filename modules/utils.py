@@ -83,7 +83,10 @@ def retry(current_model, *args):
     iter = current_model.retry(*args)
     for i in iter:
         yield i
-
+def checkboxSelect(checkBox1,evt:gr.SelectData):
+    if evt.value == True:
+        checkBox1 = False
+    return checkBox1
 def save_character_setting(current_model, *args):
     return current_model.save_character_setting(*args)
 def save_character_prompts(current_model, *args):

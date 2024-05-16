@@ -670,17 +670,19 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         gr.Markdown("Description")
                         gr.Markdown("是否选中")
                     with gr.Row():
-                        gr.Textbox("Name",show_label=False,interactive=True)
-                        gr.Textbox("Description",show_label=False,interactive=True)
-                        gr.Checkbox("激活",show_label=False,interactive=True)
+                        gr.Textbox("Banging Head",show_label=False,interactive=False)
+                        gr.Textbox("<Jacob> banging your head lightly with his knuckles",show_label=False,interactive=False)
+                        bangingHead = gr.Checkbox("",show_label=False,interactive=True)
                     with gr.Row():
-                        gr.Textbox("Name",show_label=False,interactive=True)
-                        gr.Textbox("Description",show_label=False,interactive=True)
-                        gr.Checkbox("激活",show_label=False,interactive=True)
-                    with gr.Row():
-                        gr.Textbox("Name",show_label=False,interactive=True)
-                        gr.Textbox("Description",show_label=False,interactive=True)
-                        gr.Checkbox("激活",show_label=False,interactive=True)
+                        gr.Textbox("finger-stamp",show_label=False,interactive=False)
+                        gr.Textbox("用手指戳角色的肚子",show_label=False,interactive=False)
+                        fingerStamp = gr.Checkbox("",show_label=False,interactive=True)
+                    bangingHead.select(checkboxSelect,
+                                       [fingerStamp],
+                                       [fingerStamp])
+                    fingerStamp.select(checkboxSelect,
+                                       [bangingHead],
+                                       [bangingHead])
 
 
             with gr.Group(elem_id="web-config", visible=False):
