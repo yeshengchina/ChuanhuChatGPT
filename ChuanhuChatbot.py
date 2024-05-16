@@ -759,9 +759,10 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     demo.load(create_greeting, inputs=None, outputs=[
               user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, 
             
-              chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, historySelectList,
+              chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, 
               character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt, 
-              character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox
+              character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox,
+              historySelectList
               ], api_name="load")
     chatgpt_predict_args = dict(
         fn=predict,
@@ -807,7 +808,10 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     load_history_from_file_args = dict(
         fn=load_chat_history,
         inputs=[current_model, historySelectList],
-        outputs=[saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt],
+        outputs=[saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt,
+                character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt, 
+              character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox
+                ],
     )
     character_select_args = dict(
         fn=character_select,
@@ -847,7 +851,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         
     character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox],[])
     
-    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_dialogsystem_prompt,character_gesture_prompt],[])
+    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt],[])
     # Chatbot
     cancelBtn.click(interrupt, [current_model], [])
 
