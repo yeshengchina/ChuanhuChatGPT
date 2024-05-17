@@ -1060,6 +1060,9 @@ input:checked + .chatbot-input-more-span {
     max-width: 24px;
     margin-inline: 8px;
 }
+#gr-gesture-rows {
+    max-height: 450px;
+}
 #gr-history-header-btns button {
     box-shadow: none;
     justify-content: center;

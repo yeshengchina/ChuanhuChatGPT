@@ -664,7 +664,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     gr.Markdown("## "+i18n("Gesture设置"))
                     gr.HTML(get_html("close_btn.html").format(
                         obj="box"), elem_classes="close-btn")
-                with gr.Column():
+                with gr.Column(elem_id="gr-gesture-rows"):
                     with gr.Row():
                         gr.Markdown("Name")
                         gr.Markdown("Description")
@@ -790,6 +790,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         show_progress=True,
         concurrency_limit=CONCURRENT_COUNT
     )
+    
 
     start_outputing_args = dict(
         fn=start_outputing,
@@ -853,11 +854,12 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         show_progress=False,
     )
     
-    gesture_send_btn.click(send_gesture, [current_model], []).then(fn=lambda:None,js="""
-        function() {    
-            closeBtnClick("box");
-        }
-        """)
+    gesture_send_btn.click(set_system_prompt, [current_model, character_gesture_prompt], None).then(gesture_fill_inputs, [gestureState],[user_input]).then(**transfer_input_args).then(**chatgpt_predict_args,
+        api_name="predict").then(set_system_prompt,[current_model, character_dialogsystem_prompt], None).then(**end_outputing_args).then(fn=lambda:None,js="""
+                                    function() {    
+                                        closeBtnClick("box");
+                                    }
+                                    """)
 
     
     newCharacterBtn.click(fn=lambda:None,js="""
@@ -867,9 +869,20 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         """)
     
         
-    character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox],[]).then(**refresh_history_args)
+    character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,
+        character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,
+        character_goal_txtbox],[]).then(**refresh_history_args).then(fn=lambda:None,js="""
+        function() {    
+            closeBtnClick("box");
+        }
+        """)
     
-    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt],[])
+    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,
+        character_gesture_prompt],[]).then(fn=lambda:None,js="""
+        function() {    
+            closeBtnClick("box");
+        }
+        """)
     # Chatbot
     cancelBtn.click(interrupt, [current_model], [])
 

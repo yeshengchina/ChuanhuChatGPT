@@ -86,7 +86,9 @@ def retry(current_model, *args):
 def checkboxSelect(checkBox1,txtBox,evt:gr.SelectData):
     if evt.value == True:
         checkBox1 = False
-    return checkBox1,txtBox.value
+    return checkBox1,txtBox
+def gesture_fill_inputs(gesture_dest):
+    return gr.update(value=gesture_dest)
 def save_character_setting(current_model, *args):
     return current_model.save_character_setting(*args)
 def save_character_prompts(current_model, *args):

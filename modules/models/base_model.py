@@ -632,6 +632,7 @@ class BaseLLMModel:
                 + f"{inputs}"
                 + colorama.Style.RESET_ALL
             )
+            logging.info(f"system prompt:{self.system_prompt}")
         if should_check_token_count:
             if type(inputs) == list:
                 yield chatbot + [(inputs[0]["text"], "")], status_text
