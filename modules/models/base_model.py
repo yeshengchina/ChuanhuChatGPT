@@ -282,6 +282,7 @@ class BaseLLMModel:
         self.interrupted = False
         self.need_api_key = self.api_key is not None
         self.history = []
+        self.summaries = []
         self.all_token_counts = []
         self.model_type = ModelType.get_type(model_name)
         self.history_file_path = get_first_history_name(user)
@@ -598,7 +599,7 @@ class BaseLLMModel:
         else:
             display_append = ""
         return limited_context, fake_inputs, display_append, real_inputs, chatbot
-
+    
     def predict(
         self,
         inputs,
