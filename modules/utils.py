@@ -12,6 +12,7 @@ import requests
 import re
 import html
 import hashlib
+import time
 
 import gradio as gr
 import getpass
@@ -23,6 +24,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 import pandas as pd
 import colorama
+import schedule
 
 from modules.presets import *
 from . import shared
@@ -379,7 +381,7 @@ def detect_language(code):  # deprecated
 
 
 def construct_text(role, text):
-    return {"role": role, "content": text}
+    return {"role": role, "content": text, "time": datetime.datetime.now().strftime("%y%m%d%H%M")} #对话历史都加上时间
 
 
 def construct_user(text):
@@ -396,7 +398,34 @@ def construct_system(text):
 def construct_assistant(text):
     return construct_text("assistant", text)
 
+def save_summary_file(filename,model,prompt):
+    user_name = model.user_name
+    os.makedirs(os.path.join(HISTORY_DIR, user_name), exist_ok=True)
+    if filename == ".json":
+        raise Exception("文件名不能为空")
+    if not filename.endswith(".json") and not filename.endswith(".md"):
+        filename += ".json"
+    json_s = {
+        "system": prompt,
+        "summaries": model.summaries,
+        "model_name": model.model_name,
+        "temperature": model.temperature,
+        "summaries_last_record_idx" : model.summaries_last_record_idx,
+        "reflections": model.reflections,
+        "reflections_lastday" :model.reflections_lastday,
+        "reflections_last_record_idx":model.reflections_last_record_idx
 
+    }
+    if not filename == os.path.basename(filename):
+        history_file_path = filename
+    else:
+        history_file_path = os.path.join(HISTORY_DIR, user_name, filename)
+
+    with open(history_file_path, "w", encoding="utf-8") as f:
+        json.dump(json_s, f, ensure_ascii=False, indent=4)
+
+    filename = os.path.basename(filename)
+    return os.path.join(HISTORY_DIR, user_name, filename)
 def save_file(filename, model, chatbot):
     system = model.system_prompt
     history = model.history
@@ -720,7 +749,14 @@ def transfer_input(inputs):
         gr.Button(visible=False),
         gr.Button(visible=True),
     )
-
+def run_scheduler(*args):
+    # 设置定时任务，例如每10秒更新一次数据
+    schedule.every().day.at("00:00").do(do_reflection,*args)
+    while True:
+        schedule.run_pending()
+        time.sleep(5)
+def do_reflection(model):
+    model.reflection()
 
 def update_chuanhu():
     from .repo import background_update

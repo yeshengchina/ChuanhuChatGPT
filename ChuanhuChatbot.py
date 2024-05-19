@@ -16,6 +16,7 @@ from modules.config import *
 from modules import config
 import gradio as gr
 import colorama
+from threading import Thread
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
@@ -743,6 +744,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         
         if not hide_history_when_not_logged_in or user_name:
             loaded_stuff = current_model.auto_load()
+            
         else:
             current_model.new_auto_history_filename()
             loaded_stuff = [gr.update(), gr.update(), 
@@ -766,6 +768,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             current_model.character_setting["Goal"]
                             ]
             
+        thread = Thread(target=run_scheduler,args=(current_model,))
+        thread.start()
         return user_info, user_name, current_model, toggle_like_btn_visibility(DEFAULT_MODEL), *loaded_stuff, init_history_list(user_name, prepend=current_model.history_file_path.rstrip(".json"))
     demo.load(create_greeting, inputs=None, outputs=[
               user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, 
@@ -1124,6 +1128,7 @@ demo.title = i18n("川虎Chat 🚀")
 if __name__ == "__main__":
     reload_javascript()
     setup_wizard()
+    
     demo.queue().launch(
         allowed_paths=["history", "web_assets"],
         blocked_paths=["config.json", "files", "models", "lora", "modules"],

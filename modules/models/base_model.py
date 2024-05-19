@@ -17,6 +17,9 @@ from typing import Any, Dict, List, Optional
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, TypeVar, Union
 from uuid import UUID
 from langchain_core.outputs import ChatGenerationChunk, GenerationChunk
+from langchain.docstore.document import Document
+from langchain_community.vectorstores import FAISS
+from langchain.text_splitter import TokenTextSplitter
 
 import colorama
 import PIL
@@ -282,7 +285,13 @@ class BaseLLMModel:
         self.interrupted = False
         self.need_api_key = self.api_key is not None
         self.history = []
-        self.summaries = []
+        self.text_splitter = TokenTextSplitter(chunk_size=500, chunk_overlap=30)
+        self.summaries = []         #存放每50次的summary
+        self.summaries_last_record_idx = 0
+        self.summaries_record_num = config["summary_record_num"]
+        self.reflections = []       #存放每天的reflection
+        self.reflections_lastday = ""
+        self.reflections_last_record_idx = 0
         self.all_token_counts = []
         self.model_type = ModelType.get_type(model_name)
         self.history_file_path = get_first_history_name(user)
@@ -364,6 +373,30 @@ class BaseLLMModel:
         # logging.warning("token count not implemented, using default")
         return len(user_input)
 
+    def stream_llm_summarize(self, inputs, prompt,fake_input=None, display_append=""):
+        def get_return_value():
+            return status_text
+
+        status_text = i18n("开始实时传输回答……")
+
+        user_token_count = self.count_token(inputs)
+        self.all_token_counts.append(user_token_count)
+        logging.debug(f"输入token计数: {user_token_count}")
+
+        #get_answer_stream_iter返回流式的partial_text和tokenincrement，partial_text包含llm截至目前的所有回答文本
+        stream_iter = self.get_answer_stream_iter(prompt)
+
+        partial_text = ""
+        token_increment = 1
+        for partial_text in stream_iter:
+            if type(partial_text) == tuple:
+                partial_text, token_increment = partial_text
+            self.all_token_counts[-1] += token_increment
+            status_text = self.token_message()
+            yield get_return_value()
+        #回答放入summaries中而不是history中
+        self.summaries.append(construct_assistant(partial_text))
+        
     def stream_next_chatbot(self, inputs, chatbot, fake_input=None, display_append=""):
         def get_return_value():
             return chatbot, status_text
@@ -397,6 +430,7 @@ class BaseLLMModel:
                 self.recover()
                 break
         self.history.append(construct_assistant(partial_text))
+        self.summarize()
 
     def next_chatbot_at_once(self, inputs, chatbot, fake_input=None, display_append=""):
         if fake_input:
@@ -420,6 +454,100 @@ class BaseLLMModel:
         status_text = self.token_message()
         return chatbot, status_text
 
+    def summarize(self):
+        if(len(self.history) - self.summaries_last_record_idx < 50):
+            return
+        histoy_need_summarize = self.history[self.summaries_last_record_idx:]
+        self.predict_summary(histoy_need_summarize)
+        self.summaries_last_record_idx = len(self.history)
+    def reflection(self):
+        
+        pass
+
+    def trieve(self,query,texts=[]):
+        
+        docs = [Document(page_content=text) for text in texts]
+        
+        #计算summaries和问题的相似度
+        # use embedding
+        embeddings = OpenAIEmbeddings(
+            openai_api_key=self.api_key,
+            openai_api_base=os.environ.get("OPENAI_API_BASE", None),
+            model="text-embedding-3-large",
+        )
+
+        # create vectorstore
+        db = FAISS.from_documents(docs, embeddings)
+        retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+        relevant_documents = retriever.get_relevant_documents(query)
+        return relevant_documents
+    
+    def predict_summary(
+        self,
+        inputs,
+        prompt="",
+        stream=True,
+        reply_language="中文",
+        should_check_token_count=True,
+        ):
+        logging.debug("over 50 histories,invoke summary ")
+        status_text = "开始生成回答……"
+        
+        #构造summary的prompt
+        
+        logging.info(f"summary prompt:{prompt}")
+        # if should_check_token_count:
+        #     if type(inputs) == list:
+        #         yield chatbot + [(inputs[0]["text"], "")], status_text
+        #     else:
+        #         yield chatbot + [(inputs, "")], status_text
+        if reply_language == "跟随问题语言（不稳定）":
+            reply_language = "the same language as the question, such as English, 中文, 日本語, Español, Français, or Deutsch."
+
+        
+        # logging.debug(f"limit_context: {limited_context},fake_inputs: {fake_inputs},display_append: {display_append},inputs: {inputs},chatbot: {chatbot}")
+        
+        if type(inputs) == list:
+            self.summaries.append(inputs)
+        else:
+            self.summaries.append(construct_user(inputs)) #保存到summaries中而不是history
+
+        start_time = time.time()
+        try:
+            if stream:
+                logging.debug("使用流式传输")
+                iter = self.stream_llm_summarize(
+                    inputs,
+                    prompt
+                )
+                for  status_text in iter:
+                    logging.debug(f"status_text:f{status_text}")         
+        except Exception as e:
+            traceback.print_exc()
+            status_text = STANDARD_ERROR_MSG + beautify_err_msg(str(e))
+            logging.debug(f"status_text:f{status_text}")
+        end_time = time.time()
+        if len(self.summaries) > 1 :
+            logging.info(
+                "回答为："
+                + colorama.Fore.BLUE
+                + f"{self.summaries[-1]['content']}"
+                + colorama.Style.RESET_ALL
+            )
+            logging.info(i18n("Tokens per second：{token_generation_speed}").format(token_generation_speed=str(self.all_token_counts[-1] / (end_time - start_time))))
+
+        max_token = self.token_upper_limit - TOKEN_OFFSET
+
+        if sum(self.all_token_counts) > max_token and should_check_token_count:
+            count = self.del_history_for_tokenlimit()
+            logging.info(status_text)
+            status_text = f"为了防止token超限，模型忘记了早期的 {count} 轮对话"
+            logging.debug(f"status_text:f{status_text}")
+
+#        self.chatbot = chatbot
+        save_summary_file(self.history_file_path+"_summary", self,prompt)
+
+    
     def handle_file_upload(self, files, chatbot, language):
         """if the model accepts multi modal input, implement this function"""
         status = gr.Markdown()
@@ -732,22 +860,25 @@ class BaseLLMModel:
         max_token = self.token_upper_limit - TOKEN_OFFSET
 
         if sum(self.all_token_counts) > max_token and should_check_token_count:
-            count = 0
-            while (
-                sum(self.all_token_counts)
-                > self.token_upper_limit * REDUCE_TOKEN_FACTOR
-                and sum(self.all_token_counts) > 0
-            ):
-                count += 1
-                del self.all_token_counts[0]
-                del self.history[:2]
+            count = self.del_history_for_tokenlimit()
             logging.info(status_text)
             status_text = f"为了防止token超限，模型忘记了早期的 {count} 轮对话"
             yield chatbot, status_text
 
         self.chatbot = chatbot
         self.auto_save(chatbot)
-
+    def del_history_for_tokenlimit(self):
+        count = 0
+        while (
+            sum(self.all_token_counts)
+            > self.token_upper_limit * REDUCE_TOKEN_FACTOR
+            and sum(self.all_token_counts) > 0
+        ):
+            count += 1
+            del self.all_token_counts[0]
+            del self.history[:2]
+            self.summaries_last_record_idx = self.summaries_last_record_idx - 2
+        return count
     def retry(
         self,
         chatbot,
@@ -1040,8 +1171,40 @@ class BaseLLMModel:
         
         # self.system_prompt = self.character_dialog_prompt
 
-        
+    def load_summary_file(self):
+        try:
+            if self.history_file_path == os.path.basename(self.history_file_path):
+                history_file_path = os.path.join(
+                    HISTORY_DIR, self.user_name, self.history_file_path
+                )
+            else:
+                history_file_path = self.history_file_path
+            history_file_path += "_summary"
+            if not self.history_file_path.endswith(".json"):
+                history_file_path += ".json"
+            with open(history_file_path, "r", encoding="utf-8") as f:
+                saved_json = json.load(f)
+            
+            logging.info(f"{self.user_name} 加载Summary完毕")
+
+            self.summaries = saved_json["summaries"]
+            self.summaries_last_record_idx = saved_json["summaries_last_record_idx"]
+            self.reflections = saved_json["reflections"]
+            self.reflections_lastday = saved_json.get("reflections_lastday", self.reflections_lastday)
+            self.reflections_last_record_idx = saved_json["reflections_last_record_idx",self.reflections_last_record_idx]
+            
+            
+            # return (
+            #     os.path.basename(self.history_file_path)[:-5],
+            # )
+        except:
+            # 没有对话历史或者对话历史解析失败
+            logging.info(f"没有找到Summary记录 {self.history_file_path}")
+            # return (
+            #     os.path.basename(self.history_file_path),
+            # )
     def load_chat_history(self, new_history_file_path=None):
+        
         logging.debug(f"{self.user_name} 加载对话历史中……")
         if new_history_file_path is not None:
             if type(new_history_file_path) != str:
@@ -1118,6 +1281,7 @@ class BaseLLMModel:
             self.chatbot = saved_json["chatbot"]
             logging.debug(f"character_setting:{self.character_setting} ")
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
+            self.load_summary_file()
             return (
                 os.path.basename(self.history_file_path)[:-5],
                 saved_json["system"],
@@ -1215,6 +1379,7 @@ class BaseLLMModel:
         return self.character_introduction
     def auto_load(self):
         # self.new_auto_history_filename()
+
         return self.load_chat_history()
 
     def new_auto_history_filename(self):
@@ -1268,7 +1433,19 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
         # inplement this to setup the model then return it
         pass
 
-    def _get_langchain_style_history(self):
+    def _get_langchain_style_history(self,prompt=None):
+        if prompt is None:
+            prompt = self.system_prompt
+        history = [SystemMessage(content=prompt)]
+        for i in self.history:
+            if i["role"] == "user":
+                history.append(HumanMessage(content=i["content"]))
+            elif i["role"] == "assistant":
+                history.append(AIMessage(content=i["content"]))
+        return history
+
+
+        prompt = self.system_prompt
         history = [SystemMessage(content=self.system_prompt)]
         for i in self.history:
             if i["role"] == "user":
@@ -1285,12 +1462,12 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
         response = self.model.generate(history)
         return response.content, sum(response.content)
 
-    def get_answer_stream_iter(self):
+    def get_answer_stream_iter(self,prompt=None):
         it = CallbackToIterator()
         assert isinstance(
             self.model, BaseChatModel
         ), "model is not instance of LangChain BaseChatModel"
-        history = self._get_langchain_style_history()
+        history = self._get_langchain_style_history(prompt)
 
         def thread_func():
             self.model(
