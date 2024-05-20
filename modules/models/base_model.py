@@ -1065,6 +1065,7 @@ class BaseLLMModel:
         )
     def reset_model(self):
         self.history = []
+        self.chatbot = []
         self.all_token_counts = []
         self.interrupted = False
         self.system_prompt = INITIAL_SYSTEM_PROMPT
@@ -1082,6 +1083,7 @@ class BaseLLMModel:
         #先尝试load一下文件，文件不存在则初始化history等其他变量,因为这是新建角色；文件存在说明是更新角色设置
         names = get_history_names(self.user_name)
         if character_role_txtbox not in names:
+            logging.info(f"文件：{character_role_txtbox}不存在于{names}，reset model")
             self.reset_model()
         
         self.character_setting["Role"] = character_role_txtbox
@@ -1095,9 +1097,9 @@ class BaseLLMModel:
         self.character_setting["Facial expression"] = character_facialexpression_txtbox
         self.character_setting["Body movements"] = character_bodymovements_txtbox
         self.character_setting["Goal"] = character_goal_txtbox
-        logging.info(f"保存角色设定为：{self.character_setting}")
+        logging.info(f"保存角色设定为：{self.character_setting},此时chatbot为{self.chatbot}")
         self.history_file_path = character_role_txtbox
-        save_file(character_role_txtbox, self, chatbot)
+        save_file(character_role_txtbox, self, self.chatbot)
     def save_character_prompts(self,chatbot,character_introduction,character_activedialogue_prompt,character_dialogue_prompt,character_gesture_prompt,character_summarize_prompt,character_reflection_prompt):
         names = get_history_names(self.user_name)
         if self.character_setting["Role"] not in names:
@@ -1109,7 +1111,8 @@ class BaseLLMModel:
         self.character_summarize_prompt = character_summarize_prompt
         self.character_reflection_prompt = character_reflection_prompt
         self.history_file_path = self.character_setting["Role"]
-        save_file(self.character_setting["Role"], self, chatbot)
+        logging.info(f"保存角色prompt为：{self.character_setting},此时chatbot为{self.chatbot}")
+        save_file(self.character_setting["Role"], self, self.chatbot)
 
     def delete_first_conversation(self):
         if self.history:
@@ -1252,7 +1255,7 @@ class BaseLLMModel:
             # )
     def load_chat_history(self, new_history_file_path=None):
         
-        logging.debug(f"{self.user_name} 加载对话{new_history_file_path}历史中……,hisotry_file_path: {self.history_file_path}")
+        logging.info(f"{self.user_name} 加载对话{new_history_file_path}中……,旧的hisotry_file_path: {self.history_file_path}")
         if new_history_file_path is not None:
             if type(new_history_file_path) != str:
                 # copy file from new_history_file_path.name to os.path.join(HISTORY_DIR, self.user_name)
@@ -1277,6 +1280,7 @@ class BaseLLMModel:
                 history_file_path = self.history_file_path
             if not self.history_file_path.endswith(".json"):
                 history_file_path += ".json"
+            logging.info(f"加载文件{self.history_file_path}")
             with open(history_file_path, "r", encoding="utf-8") as f:
                 saved_json = json.load(f)
             try:
@@ -1330,7 +1334,7 @@ class BaseLLMModel:
             self.chatbot = saved_json["chatbot"]
             logging.debug(f"character_setting:{self.character_setting} ")
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
-            logging.debug(f"histories:{self.chatbot} ")
+            logging.info(f"chatbot数据:{self.chatbot} ")
             self.load_summary_file()
             return (
                 os.path.basename(self.history_file_path)[:-5],

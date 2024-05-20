@@ -53,6 +53,7 @@ def set_key(current_model, *args):
 
 
 def load_chat_history(current_model, *args):
+    logging.info(f"Utils.py的load_chat_history被调用，args为：{args}")
     return current_model.load_chat_history(*args)
 
 def character_select(current_model, chatbot,*args):
