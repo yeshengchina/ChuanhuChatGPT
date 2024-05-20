@@ -759,6 +759,7 @@ def run_scheduler(*args):
         schedule.run_pending()
         time.sleep(5)
 def do_reflection(model):
+    logging.info("0点开始更新模型")
     model.reflection()
 
 def update_chuanhu():
