@@ -36,6 +36,7 @@ from ..config import retrieve_proxy
 from ..index_func import *
 from ..presets import *
 from ..utils import *
+from ..config import summary_record_num
 
 
 class CallbackToIterator:
@@ -288,7 +289,7 @@ class BaseLLMModel:
         self.text_splitter = TokenTextSplitter(chunk_size=500, chunk_overlap=30)
         self.summaries = []         #存放每50次的summary
         self.summaries_last_record_idx = 0
-        self.summaries_record_num = config["summary_record_num"]
+        self.summaries_record_num = summary_record_num
         self.reflections = []       #存放每天的reflection
         self.reflections_lastday = ""
         self.reflections_last_record_idx = 0
@@ -324,6 +325,8 @@ class BaseLLMModel:
         self.character_activedialog_prompt=""
         self.character_dialog_prompt = ""
         self.character_gesture_prompt = ""
+        self.character_summarize_prompt = ""
+        self.character_reflection_prompt = ""
         self.character_setting = {"Role":"",
                                   "Nickname":"",
                                   "Background":"",
@@ -373,7 +376,7 @@ class BaseLLMModel:
         # logging.warning("token count not implemented, using default")
         return len(user_input)
 
-    def stream_llm_summarize(self, inputs, prompt,fake_input=None, display_append=""):
+    def stream_llm_summarize(self, inputs, prompt,results,fake_input=None, display_append=""):
         def get_return_value():
             return status_text
 
@@ -395,7 +398,7 @@ class BaseLLMModel:
             status_text = self.token_message()
             yield get_return_value()
         #回答放入summaries中而不是history中
-        self.summaries.append(construct_assistant(partial_text))
+        results.append(construct_assistant(partial_text))
         
     def stream_next_chatbot(self, inputs, chatbot, fake_input=None, display_append=""):
         def get_return_value():
@@ -458,17 +461,21 @@ class BaseLLMModel:
         if(len(self.history) - self.summaries_last_record_idx < 50):
             return
         histoy_need_summarize = self.history[self.summaries_last_record_idx:]
-        self.predict_summary(histoy_need_summarize)
+        self.predict_summary_reflection(histoy_need_summarize,self.summaries,self.character_summarize_prompt)
         self.summaries_last_record_idx = len(self.history)
     def reflection(self):
+        #从上次到最新的聊天记录作为输入，做一次reflection
+        if(len(self.history) - self.reflection_last_record_idx <= 0):
+            return
+        histoy_need_reflection = self.history[self.reflection_last_record_idx:]
+        self.predict_summary_reflection(histoy_need_reflection,self.reflections,self.character_reflection_prompt)
         
-        pass
 
-    def trieve(self,query,texts=[]):
+    def retrieve(self,query,texts=[]):
         
         docs = [Document(page_content=text) for text in texts]
         
-        #计算summaries和问题的相似度
+        #计算summaries或reflection和问题的相似度
         # use embedding
         embeddings = OpenAIEmbeddings(
             openai_api_key=self.api_key,
@@ -478,13 +485,14 @@ class BaseLLMModel:
 
         # create vectorstore
         db = FAISS.from_documents(docs, embeddings)
-        retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+        retriever = db.as_retriever(search_type="similarity_score_threshold", search_kwargs={"k": 3,'score_threshold': 0.5})
         relevant_documents = retriever.get_relevant_documents(query)
         return relevant_documents
     
-    def predict_summary(
+    def predict_summary_reflection(
         self,
         inputs,
+        results,
         prompt="",
         stream=True,
         reply_language="中文",
@@ -493,9 +501,7 @@ class BaseLLMModel:
         logging.debug("over 50 histories,invoke summary ")
         status_text = "开始生成回答……"
         
-        #构造summary的prompt
-        
-        logging.info(f"summary prompt:{prompt}")
+        logging.info(f"summary reflection prompt:{prompt}")
         # if should_check_token_count:
         #     if type(inputs) == list:
         #         yield chatbot + [(inputs[0]["text"], "")], status_text
@@ -508,9 +514,9 @@ class BaseLLMModel:
         # logging.debug(f"limit_context: {limited_context},fake_inputs: {fake_inputs},display_append: {display_append},inputs: {inputs},chatbot: {chatbot}")
         
         if type(inputs) == list:
-            self.summaries.append(inputs)
+            results.append(inputs)
         else:
-            self.summaries.append(construct_user(inputs)) #保存到summaries中而不是history
+            results.append(construct_user(inputs)) #保存到summaries中而不是history
 
         start_time = time.time()
         try:
@@ -518,7 +524,8 @@ class BaseLLMModel:
                 logging.debug("使用流式传输")
                 iter = self.stream_llm_summarize(
                     inputs,
-                    prompt
+                    prompt,
+                    results
                 )
                 for  status_text in iter:
                     logging.debug(f"status_text:f{status_text}")         
@@ -527,11 +534,11 @@ class BaseLLMModel:
             status_text = STANDARD_ERROR_MSG + beautify_err_msg(str(e))
             logging.debug(f"status_text:f{status_text}")
         end_time = time.time()
-        if len(self.summaries) > 1 :
+        if len(results) > 1 :
             logging.info(
                 "回答为："
                 + colorama.Fore.BLUE
-                + f"{self.summaries[-1]['content']}"
+                + f"{results[-1]['content']}"
                 + colorama.Style.RESET_ALL
             )
             logging.info(i18n("Tokens per second：{token_generation_speed}").format(token_generation_speed=str(self.all_token_counts[-1] / (end_time - start_time))))
@@ -774,7 +781,7 @@ class BaseLLMModel:
             limited_context,
             fake_inputs,
             display_append,
-            inputs,
+            inputs,#prepare_inputs方法会加强inputs，把用户的输入和websearch，files等信息加进去
             chatbot,
         ) = self.prepare_inputs(
             real_inputs=inputs,
@@ -783,6 +790,7 @@ class BaseLLMModel:
             reply_language=reply_language,
             chatbot=chatbot,
         )
+        
         logging.debug(f"limit_context: {limited_context},fake_inputs: {fake_inputs},display_append: {display_append},inputs: {inputs},chatbot: {chatbot}")
         yield chatbot + [(fake_inputs, "")], status_text
 
@@ -878,6 +886,7 @@ class BaseLLMModel:
             del self.all_token_counts[0]
             del self.history[:2]
             self.summaries_last_record_idx = self.summaries_last_record_idx - 2
+            self.reflections_last_record_idx = self.reflections_last_record_idx - 2
         return count
     def retry(
         self,
@@ -891,6 +900,8 @@ class BaseLLMModel:
         if len(self.history) > 1:
             inputs = self.history[-2]["content"]
             del self.history[-2:]
+            self.summaries_last_record_idx = self.summaries_last_record_idx - 2
+            self.reflections_last_record_idx = self.reflections_last_record_idx - 2
             if len(self.all_token_counts) > 0:
                 self.all_token_counts.pop()
         elif len(chatbot) > 0:
@@ -901,6 +912,8 @@ class BaseLLMModel:
         elif len(self.history) == 1:
             inputs = self.history[-1]["content"]
             del self.history[-1]
+            self.summaries_last_record_idx = self.summaries_last_record_idx - 1
+            self.reflections_last_record_idx = self.reflections_last_record_idx - 1
         else:
             yield chatbot, f"{STANDARD_ERROR_MSG}上下文是空的"
             return
@@ -1011,11 +1024,11 @@ class BaseLLMModel:
         self.single_turn = new_single_turn
         self.auto_save()
 
-    def reset(self, remain_system_prompt=False):
+    def reset(self, filename = None,remain_system_prompt=False):
         self.history = []
         self.all_token_counts = []
         self.interrupted = False
-        self.history_file_path = new_auto_history_filename(self.user_name)
+        self.history_file_path = new_auto_history_filename(self.user_name,filename)
         history_name = self.history_file_path[:-5]
         choices = get_history_names(self.user_name)
         if history_name not in choices:
@@ -1050,7 +1063,27 @@ class BaseLLMModel:
             self.logit_bias,
             self.user_identifier,
         )
+    def reset_model(self):
+        self.history = []
+        self.all_token_counts = []
+        self.interrupted = False
+        self.system_prompt = INITIAL_SYSTEM_PROMPT
+        self.single_turn = self.default_single_turn
+        self.temperature = self.default_temperature
+        self.top_p = self.default_top_p
+        self.n_choices = self.default_n_choices
+        self.stop_sequence = self.default_stop_sequence
+        self.max_generation_token = self.default_max_generation_token
+        self.presence_penalty = self.default_presence_penalty
+        self.frequency_penalty = self.default_frequency_penalty
+        self.logit_bias = self.default_logit_bias
+        self.user_identifier = self.default_user_identifier
     def save_character_setting(self,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox):
+        #先尝试load一下文件，文件不存在则初始化history等其他变量,因为这是新建角色；文件存在说明是更新角色设置
+        names = get_history_names(self.user_name)
+        if character_role_txtbox not in names:
+            self.reset_model()
+        
         self.character_setting["Role"] = character_role_txtbox
         self.character_setting["Nickname"] = character_nickname_txtbox
         self.character_setting["Background"] = character_background_txtbox
@@ -1063,18 +1096,27 @@ class BaseLLMModel:
         self.character_setting["Body movements"] = character_bodymovements_txtbox
         self.character_setting["Goal"] = character_goal_txtbox
         logging.info(f"保存角色设定为：{self.character_setting}")
+        self.history_file_path = character_role_txtbox
         save_file(character_role_txtbox, self, chatbot)
-    def save_character_prompts(self,chatbot,character_introduction,character_activedialogue_prompt,character_dialogue_prompt,character_gesture_prompt):
+    def save_character_prompts(self,chatbot,character_introduction,character_activedialogue_prompt,character_dialogue_prompt,character_gesture_prompt,character_summarize_prompt,character_reflection_prompt):
+        names = get_history_names(self.user_name)
+        if self.character_setting["Role"] not in names:
+            self.reset_model()
         self.character_introduction = character_introduction
         self.character_activedialog_prompt = character_activedialogue_prompt
         self.character_dialog_prompt = character_dialogue_prompt
         self.character_gesture_prompt = character_gesture_prompt
+        self.character_summarize_prompt = character_summarize_prompt
+        self.character_reflection_prompt = character_reflection_prompt
+        self.history_file_path = self.character_setting["Role"]
         save_file(self.character_setting["Role"], self, chatbot)
 
     def delete_first_conversation(self):
         if self.history:
             del self.history[:2]
             del self.all_token_counts[0]
+            self.summaries_last_record_idx = self.summaries_last_record_idx - 2
+            self.reflections_last_record_idx = self.reflections_last_record_idx - 2
         return self.token_message()
 
     def delete_last_conversation(self, chatbot):
@@ -1200,12 +1242,17 @@ class BaseLLMModel:
         except:
             # 没有对话历史或者对话历史解析失败
             logging.info(f"没有找到Summary记录 {self.history_file_path}")
+            self.summaries = []
+            self.summaries_last_record_idx = 0
+            self.reflections = []
+            self.reflections_lastday = ""
+            self.reflections_last_record_idx = 0
             # return (
             #     os.path.basename(self.history_file_path),
             # )
     def load_chat_history(self, new_history_file_path=None):
         
-        logging.debug(f"{self.user_name} 加载对话历史中……")
+        logging.debug(f"{self.user_name} 加载对话{new_history_file_path}历史中……,hisotry_file_path: {self.history_file_path}")
         if new_history_file_path is not None:
             if type(new_history_file_path) != str:
                 # copy file from new_history_file_path.name to os.path.join(HISTORY_DIR, self.user_name)
@@ -1251,7 +1298,7 @@ class BaseLLMModel:
                     -len(saved_json["chatbot"]) :
                 ]
                 logging.info(f"Trimmed history: {saved_json['history']}")
-            logging.debug(f"{self.user_name} 加载对话历史完毕")
+            logging.debug(f"{self.user_name} 加载对话历史完毕,hisotry_file_path: {history_file_path},self.history_file_path: {self.history_file_path}")
             self.history = saved_json["history"]
             self.single_turn = saved_json.get("single_turn", self.single_turn)
             self.temperature = saved_json.get("temperature", self.temperature)
@@ -1278,9 +1325,12 @@ class BaseLLMModel:
             self.character_activedialog_prompt = saved_json.get("character_activedialog_prompt", self.character_activedialog_prompt)
             self.character_gesture_prompt = saved_json.get("character_gesture_prompt", self.character_gesture_prompt)
             self.character_introduction = saved_json.get("character_introduction", self.character_introduction)
+            self.character_summarize_prompt = saved_json.get("character_summarize_prompt", self.character_summarize_prompt)
+            self.character_reflection_prompt = saved_json.get("character_reflection_prompt", self.character_reflection_prompt)
             self.chatbot = saved_json["chatbot"]
             logging.debug(f"character_setting:{self.character_setting} ")
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
+            logging.debug(f"histories:{self.chatbot} ")
             self.load_summary_file()
             return (
                 os.path.basename(self.history_file_path)[:-5],
@@ -1301,6 +1351,8 @@ class BaseLLMModel:
                 self.character_activedialog_prompt,
                 self.character_dialog_prompt,
                 self.character_gesture_prompt,
+                self.character_summarize_prompt,
+                self.character_reflection_prompt,
 
                 self.character_setting["Role"],
                 self.character_setting["Nickname"],
@@ -1317,7 +1369,7 @@ class BaseLLMModel:
         except:
             # 没有对话历史或者对话历史解析失败
             logging.info(f"没有找到对话历史记录 {self.history_file_path}")
-            self.reset()
+            self.reset(self.history_file_path)
             return (
                 os.path.basename(self.history_file_path),
                 self.system_prompt,
@@ -1338,6 +1390,8 @@ class BaseLLMModel:
                 self.character_activedialog_prompt,
                 self.character_dialog_prompt,
                 self.character_gesture_prompt,
+                self.character_summarize_prompt,
+                self.character_reflection_prompt,
 
                 self.character_setting["Role"],
                 self.character_setting["Nickname"],
@@ -1436,6 +1490,19 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
     def _get_langchain_style_history(self,prompt=None):
         if prompt is None:
             prompt = self.system_prompt
+        #把system prompt加入长期记忆
+        inputs = ""
+        if self.history[-1] == "user":
+            inputs = self.history[-1]["content"]
+        retrieve_documents = self.retrieve(inputs,self.summaries)
+        retrieve_documents += self.retrieve(inputs,self.reflections)
+        prompt = prompt.replace("{Retrieved LongMemory}", "\n\n".join([d.page_content for d in retrieve_documents])).replace(
+            "{user input}", inputs).replace("{user name}", self.user_name).replace("{Role}", self.character_setting["Role"]).replace(
+            "{Nickname}", self.character_setting["Nickname"]).replace("{Background}", self.character_setting["Background"]).replace(
+            "{Personality}", self.character_setting["Personality"]).replace("{Emotions}", self.character_setting["Emotions"]).replace(
+            "{Voice}", self.character_setting["Voice"]).replace("{DialogStyle}", self.character_setting["DialogStyle"]).replace(
+            "{Facial expression}", self.character_setting["Facial expression"]).replace("{Body movements}", self.character_setting["Body movements"])
+        
         history = [SystemMessage(content=prompt)]
         for i in self.history:
             if i["role"] == "user":

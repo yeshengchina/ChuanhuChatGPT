@@ -63,7 +63,8 @@ def character_select(current_model, chatbot,*args):
     else:
         current_model.system_prompt = current_model.character_activedialog_prompt
         userinput = "initiate conversations based on who you are"
-        new_args = (userinput,) + args
+    
+    new_args = (userinput,) + args
     
     iter = current_model.predict(*new_args)
     for i in iter:
@@ -462,6 +463,8 @@ def save_file(filename, model, chatbot):
         "character_activedialog_prompt": model.character_activedialog_prompt,
         "character_dialog_prompt":model.character_dialog_prompt,
         "character_gesture_prompt":model.character_gesture_prompt,
+        "character_summarize_prompt":model.character_summarize_prompt,
+        "character_reflection_prompt":model.character_reflection_prompt
     }
     if not filename == os.path.basename(filename):
         history_file_path = filename
@@ -857,7 +860,7 @@ def get_corresponding_file_type_by_model_name(selected_model_name):
 #     return gr.Files.update(file_types=get_corresponding_file_type_by_model_name(selected_model_name))
 
 #new一个新的history（character）
-def new_auto_history_filename(username):
+def new_auto_history_filename(username,filename=None):
     latest_file = get_first_history_name(username)
     if latest_file:
         with open(
@@ -867,19 +870,21 @@ def new_auto_history_filename(username):
         ) as f:
             if len(f.read()) == 0:
                 return latest_file
+    if filename is not None:
+        return filename
     now = i18n("新对话 ") + datetime.datetime.now().strftime("%m-%d %H-%M")
     return f"{now}.json"
 
 
-def get_history_filepath(username):
-    dirname = os.path.join(HISTORY_DIR, username)
-    os.makedirs(dirname, exist_ok=True)
-    latest_file = get_first_history_name(username)
-    if not latest_file:
-        latest_file = new_auto_history_filename(username)
+# def get_history_filepath(username):
+#     dirname = os.path.join(HISTORY_DIR, username)
+#     os.makedirs(dirname, exist_ok=True)
+#     latest_file = get_first_history_name(username)
+#     if not latest_file:
+#         latest_file = new_auto_history_filename(username)
 
-    latest_file = os.path.join(dirname, latest_file)
-    return latest_file
+#     latest_file = os.path.join(dirname, latest_file)
+#     return latest_file
 
 
 def beautify_err_msg(err_msg):

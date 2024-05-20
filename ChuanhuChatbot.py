@@ -570,6 +570,14 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         character_gesture_prompt = gr.Textbox(                         
                         lines=10                           
                         )
+                    with gr.Tab(label= "Summarize prompt"):
+                        character_summarize_prompt = gr.Textbox(                         
+                        lines=10                           
+                    )
+                    with gr.Tab(label= "Reflection prompt"):
+                        character_reflection_prompt = gr.Textbox(                         
+                        lines=10                           
+                    )
                 with gr.Row(elem_id="save-btn"):
                         prompt_save_btn  = gr.Button(
                             i18n("保存"),
@@ -754,6 +762,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             current_model.character_activedialog_prompt,
                             current_model.character_dialog_prompt,
                             current_model.character_gesture_prompt,
+                            current_model.character_summarization_prompt,
+                            current_model.character_reflection_prompt,
 
                             current_model.character_setting["Role"],
                             current_model.character_setting["Nickname"],
@@ -775,7 +785,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
               user_info, user_name, current_model, like_dislike_area, saveFileName, systemPromptTxt, 
             
               chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt, 
-              character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt, 
+              character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt, character_summarize_prompt,character_reflection_prompt,
               character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox,
               historySelectList
               ], api_name="load")
@@ -825,7 +835,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         fn=load_chat_history,
         inputs=[current_model, historySelectList],
         outputs=[saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt,
-                character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt, 
+                character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,character_gesture_prompt, character_summarize_prompt,character_reflection_prompt,
               character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox
                 ],
     )
@@ -875,14 +885,14 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         
     character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,
         character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,
-        character_goal_txtbox],[]).then(**refresh_history_args).then(fn=lambda:None,js="""
+        character_goal_txtbox],[]).then(**refresh_history_args).then(**load_history_from_file_args).then(fn=lambda:None,js="""
         function() {    
             closeBtnClick("box");
         }
         """)
     
     prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,
-        character_gesture_prompt],[]).then(fn=lambda:None,js="""
+        character_gesture_prompt,character_summarize_prompt,character_reflection_prompt],[]).then(fn=lambda:None,js="""
         function() {    
             closeBtnClick("box");
         }
