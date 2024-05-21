@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s",
 )
 
@@ -1034,8 +1034,11 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         saveFileName, systemPromptTxt, chatbot, single_turn_checkbox, temperature_slider, top_p_slider, n_choices_slider, stop_sequence_txt, max_context_length_slider, max_generation_slider, presence_penalty_slider, frequency_penalty_slider, logit_bias_txt, user_identifier_txt]).then(**refresh_history_args)
     historyDownloadBtn.click(None, [
                              user_name, historySelectList], None, js='(a,b)=>{return downloadHistory(a,b,".json");}')
-    historyMarkdownDownloadBtn.click(None, [
-                                     user_name, historySelectList], None, js='(a,b)=>{return downloadHistory(a,b,".md");}')
+    historyMarkdownDownloadBtn.click(export_csv, [
+                                     historySelectList,current_model], None).then(
+                                     None, [
+                                     user_name, historySelectList], None, js='(a,b)=>{return downloadHistory(a,b,".csv");}'
+                                     )
     historySearchTextbox.input(
         filter_history,
         [user_name, historySearchTextbox],

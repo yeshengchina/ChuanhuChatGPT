@@ -399,7 +399,54 @@ def construct_system(text):
 
 def construct_assistant(text):
     return construct_text("assistant", text)
+def export_csv(filename,model):
+    
+    if not filename.endswith(".csv"):
+            filename += ".csv"
+    # data = [[1, 2], {"content": "value1", "time": 3123}, [3, 4], {"content": "value2", "time": 33545}]
+    data = model.summaries
+    csv_data = []
+    for index, item in enumerate(data):
+        if isinstance(item, list):
+            # 如果是列表，存储列表的字符串表示
+            input_value = str(item)
+            # 如果下一个元素是字典，则从中取得content和time
+            if index + 1 < len(data) and isinstance(data[index + 1], dict):
+                content = data[index + 1]['content']
+                time = data[index + 1]['time']
+            else:
+                content = ''
+                time = ''
+            csv_data.append({"input": input_value, "content": content, "time": time,"type":"summary"})
+    data = model.reflections
+    for index, item in enumerate(data):
+        if isinstance(item, list):
+            # 如果是列表，存储列表的字符串表示
+            input_value = str(item)
+            # 如果下一个元素是字典，则从中取得content和time
+            if index + 1 < len(data) and isinstance(data[index + 1], dict):
+                content = data[index + 1]['content']
+                time = data[index + 1]['time']
+            else:
+                content = ''
+                time = ''
+            csv_data.append({"input": input_value, "content": content, "time": time,"type":"reflection"})
 
+    # 列标题
+    fields = ["input", "content", "time","type"]
+
+    if  filename == os.path.basename(filename):
+        filename = os.path.join(HISTORY_DIR, model.user_name, filename)
+    # 将数据写入CSV文件
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fields)
+        
+        # 写入列标题
+        writer.writeheader()
+        
+        # 写入数据行
+        for row in csv_data:
+            writer.writerow(row)
 def save_summary_file(filename,model,prompt):
     user_name = model.user_name
     os.makedirs(os.path.join(HISTORY_DIR, user_name), exist_ok=True)
@@ -502,7 +549,7 @@ def get_file_names_by_type(dir, filetypes=[".json"]):
     logging.debug(f"获取文件名列表，目录为{dir}，文件类型为{filetypes}")
     files = []
     for type in filetypes:
-        files += [f for f in os.listdir(dir) if f.endswith(type)]
+        files += [f for f in os.listdir(dir) if f.endswith(type) and "_summary" not in f]
     logging.debug(f"files are:{files}")
     return files
 

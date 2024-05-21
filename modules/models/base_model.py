@@ -20,6 +20,7 @@ from langchain_core.outputs import ChatGenerationChunk, GenerationChunk
 from langchain.docstore.document import Document
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import TokenTextSplitter
+from langchain_openai import AzureOpenAIEmbeddings
 
 import colorama
 import PIL
@@ -132,7 +133,7 @@ class ChuanhuCallbackHandler(BaseCallbackHandler):
             chunk (GenerationChunk | ChatGenerationChunk): The new generated chunk,
             containing content and other information.
         """
-        logging.info(f"### CHUNK ###: {chunk}")
+        self.callback(chunk.text)
 
 
 class ModelType(Enum):
@@ -458,30 +459,45 @@ class BaseLLMModel:
         return chatbot, status_text
 
     def summarize(self):
-        if(len(self.history) - self.summaries_last_record_idx < 50):
+        if(len(self.history) - self.summaries_last_record_idx < summary_record_num):
             return
         histoy_need_summarize = self.history[self.summaries_last_record_idx:]
         self.predict_summary_reflection(histoy_need_summarize,self.summaries,self.character_summarize_prompt)
         self.summaries_last_record_idx = len(self.history)
     def reflection(self):
         #从上次到最新的聊天记录作为输入，做一次reflection
-        if(len(self.history) - self.reflection_last_record_idx <= 0):
+        if(len(self.history) - self.reflections_last_record_idx <= 0):
             return
-        histoy_need_reflection = self.history[self.reflection_last_record_idx:]
+        histoy_need_reflection = self.history[self.reflections_last_record_idx:]
         self.predict_summary_reflection(histoy_need_reflection,self.reflections,self.character_reflection_prompt)
         
 
     def retrieve(self,query,texts=[]):
         
-        docs = [Document(page_content=text) for text in texts]
+        docs = [Document(page_content=text["content"]) for text in texts]
         
         #计算summaries或reflection和问题的相似度
         # use embedding
-        embeddings = OpenAIEmbeddings(
-            openai_api_key=self.api_key,
-            openai_api_base=os.environ.get("OPENAI_API_BASE", None),
-            model="text-embedding-3-large",
-        )
+        if os.environ.get("OPENAI_API_TYPE", "openai") == "openai":
+            embeddings = OpenAIEmbeddings(
+                openai_api_key=self.api_key,
+                openai_api_base=os.environ.get("OPENAI_API_BASE", None),
+                model="text-embedding-3-large",
+            )
+        else:
+            embeddings = AzureOpenAIEmbeddings(
+                azure_deployment=os.environ["AZURE_EMBEDDING_DEPLOYMENT_NAME"],
+                openai_api_key=os.environ["AZURE_OPENAI_API_KEY"],
+                openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
+                model=os.environ["AZURE_EMBEDDING_MODEL_NAME"],
+                azure_endpoint="https://tt-us00.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings?api-version=2024-03-01-preview",
+                openai_api_type="azure",
+            )
+        # embeddings = OpenAIEmbeddings(
+        #     openai_api_key=self.api_key,
+        #     openai_api_base=os.environ.get("OPENAI_API_BASE", None),
+        #     model="text-embedding-3-large",
+        # )
 
         # create vectorstore
         db = FAISS.from_documents(docs, embeddings)
@@ -528,7 +544,8 @@ class BaseLLMModel:
                     results
                 )
                 for  status_text in iter:
-                    logging.debug(f"status_text:f{status_text}")         
+                    pass
+                    # logging.debug(f"status_text:f{status_text}")         
         except Exception as e:
             traceback.print_exc()
             status_text = STANDARD_ERROR_MSG + beautify_err_msg(str(e))
@@ -1079,6 +1096,31 @@ class BaseLLMModel:
         self.frequency_penalty = self.default_frequency_penalty
         self.logit_bias = self.default_logit_bias
         self.user_identifier = self.default_user_identifier
+        self.character_setting = {
+            "Role": "",
+            "Nickname": "",
+            "Background": "",
+            "Personality": "",
+            "Emotions": "",
+            "Voice": "",
+            "DialogStyle": "",
+            "Knowledge": "",
+            "Facial expression": "",
+            "Body movements": "",
+            "Goal": ""
+        }
+        self.character_activedialog_prompt = ""
+        self.character_dialog_prompt = ""
+        self.character_gesture_prompt = ""
+        self.character_introduction = ""
+        self.character_reflection_prompt = ""
+        self.character_summarize_prompt = ""
+        self.summaries = []         #存放每50次的summary
+        self.summaries_last_record_idx = 0
+        self.summaries_record_num = summary_record_num
+        self.reflections = []       #存放每天的reflection
+        self.reflections_lastday = ""
+        self.reflections_last_record_idx = 0
     def save_character_setting(self,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox):
         #先尝试load一下文件，文件不存在则初始化history等其他变量,因为这是新建角色；文件存在说明是更新角色设置
         names = get_history_names(self.user_name)
@@ -1217,6 +1259,7 @@ class BaseLLMModel:
         # self.system_prompt = self.character_dialog_prompt
 
     def load_summary_file(self):
+        history_file_path = ""
         try:
             if self.history_file_path == os.path.basename(self.history_file_path):
                 history_file_path = os.path.join(
@@ -1230,21 +1273,22 @@ class BaseLLMModel:
             with open(history_file_path, "r", encoding="utf-8") as f:
                 saved_json = json.load(f)
             
-            logging.info(f"{self.user_name} 加载Summary完毕")
+            
 
             self.summaries = saved_json["summaries"]
             self.summaries_last_record_idx = saved_json["summaries_last_record_idx"]
             self.reflections = saved_json["reflections"]
             self.reflections_lastday = saved_json.get("reflections_lastday", self.reflections_lastday)
-            self.reflections_last_record_idx = saved_json["reflections_last_record_idx",self.reflections_last_record_idx]
-            
+            self.reflections_last_record_idx = saved_json.get("reflections_last_record_idx",self.reflections_last_record_idx)
+            logging.info(f"{self.user_name} 加载Summary完毕,file:{history_file_path},summaries:{self.summaries},summaries idx:{self.summaries_last_record_idx}")
             
             # return (
             #     os.path.basename(self.history_file_path)[:-5],
             # )
-        except:
+        except Exception as e:
             # 没有对话历史或者对话历史解析失败
-            logging.info(f"没有找到Summary记录 {self.history_file_path}")
+            logging.error(f"加载Summary失败,file:{history_file_path},error: {e},异常信息：{e.__str__()}")
+            logging.info(f"没有找到Summary记录 {self.history_file_path},file:{history_file_path}")
             self.summaries = []
             self.summaries_last_record_idx = 0
             self.reflections = []
@@ -1334,7 +1378,6 @@ class BaseLLMModel:
             self.chatbot = saved_json["chatbot"]
             logging.debug(f"character_setting:{self.character_setting} ")
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
-            logging.info(f"chatbot数据:{self.chatbot} ")
             self.load_summary_file()
             return (
                 os.path.basename(self.history_file_path)[:-5],
@@ -1498,8 +1541,15 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
         inputs = ""
         if self.history[-1] == "user":
             inputs = self.history[-1]["content"]
-        retrieve_documents = self.retrieve(inputs,self.summaries)
-        retrieve_documents += self.retrieve(inputs,self.reflections)
+        retrieve_documents = []
+        if len(self.summaries) > 0 :
+            response_summaries = [summary for summary in self.summaries if isinstance(summary, dict)]
+            if len(response_summaries) > 0:
+                retrieve_documents = self.retrieve(inputs,response_summaries)
+        if len(self.reflections) > 0 :
+            response_reflections = [reflection for reflection in self.reflections if isinstance(reflection, dict)]
+            if len(response_reflections) > 0:
+                retrieve_documents += self.retrieve(inputs,response_reflections)
         prompt = prompt.replace("{Retrieved LongMemory}", "\n\n".join([d.page_content for d in retrieve_documents])).replace(
             "{user input}", inputs).replace("{user name}", self.user_name).replace("{Role}", self.character_setting["Role"]).replace(
             "{Nickname}", self.character_setting["Nickname"]).replace("{Background}", self.character_setting["Background"]).replace(
