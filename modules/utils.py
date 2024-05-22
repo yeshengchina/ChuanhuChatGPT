@@ -13,6 +13,7 @@ import re
 import html
 import hashlib
 import time
+import traceback
 
 import gradio as gr
 import getpass
@@ -523,14 +524,14 @@ def save_file(filename, model, chatbot):
         json.dump(json_s, f, ensure_ascii=False, indent=4)
 
     filename = os.path.basename(filename)
-    filename_md = filename[:-5] + ".md"
-    md_s = f"system: \n- {system} \n"
-    for data in history:
-        md_s += f"\n{data['role']}: \n- {data['content']} \n"
-    with open(
-        os.path.join(HISTORY_DIR, user_name, filename_md), "w", encoding="utf8"
-    ) as f:
-        f.write(md_s)
+    # filename_md = filename[:-5] + ".md"
+    # md_s = f"system: \n- {system} \n"
+    # for data in history:
+    #     md_s += f"\n{data['role']}: \n- {data['content']} \n"
+    # with open(
+    #     os.path.join(HISTORY_DIR, user_name, filename_md), "w", encoding="utf8"
+    # ) as f:
+    #     f.write(md_s)
     return os.path.join(HISTORY_DIR, user_name, filename)
 
 
@@ -549,8 +550,8 @@ def get_file_names_by_type(dir, filetypes=[".json"]):
     logging.debug(f"获取文件名列表，目录为{dir}，文件类型为{filetypes}")
     files = []
     for type in filetypes:
-        files += [f for f in os.listdir(dir) if f.endswith(type) and "_summary" not in f]
-    logging.debug(f"files are:{files}")
+        files += [f for f in os.listdir(dir) if f.endswith(type) and "_summarie" not in f]
+    logging.debug(f"get_file_names_by_type,files are:{files}")
     return files
 
 
@@ -558,7 +559,7 @@ def get_file_names_by_pinyin(dir, filetypes=[".json"]):
     files = get_file_names_by_type(dir, filetypes)
     if files != [""]:
         files = sorted_by_pinyin(files)
-    logging.debug(f"files are:{files}")
+    logging.debug(f"get_file_names_by_pinyin,files are:{files}")
     return files
 
 
@@ -571,11 +572,13 @@ def get_file_names_by_last_modified_time(dir, filetypes=[".json"]):
     files = get_file_names_by_type(dir, filetypes)
     if files != [""]:
         files = sorted_by_last_modified_time(files, dir)
-    logging.debug(f"files are:{files}")
+    logging.debug(f"get_file_names_by_last_modified_time,files are:{files}")
     return files
 
 
 def get_history_names(user_name=""):
+    stack = traceback.format_stack()
+    logging.debug('Call stack:\n' + ''.join(stack))
     logging.debug(f"从用户 {user_name} 中获取历史记录文件名列表")
     if user_name == "" and hide_history_when_not_logged_in:
         return []
@@ -584,6 +587,7 @@ def get_history_names(user_name=""):
             os.path.join(HISTORY_DIR, user_name)
         )
         history_files = [f[: f.rfind(".")] for f in history_files]
+        logging.debug(f"get_history_names,files are:{history_files}")
         return history_files
 
 
@@ -594,7 +598,7 @@ def get_first_history_name(user_name=""):
 
 def get_history_list(user_name=""):
     history_names = get_history_names(user_name)
-    return gr.Radio(choices=history_names)
+    return gr.Radio(choices=history_names,value=history_names[0] if history_names else None)
 
 
 def init_history_list(user_name="", prepend=None):

@@ -462,15 +462,18 @@ class BaseLLMModel:
         if(len(self.history) - self.summaries_last_record_idx < summary_record_num):
             return
         histoy_need_summarize = self.history[self.summaries_last_record_idx:]
-        self.predict_summary_reflection(histoy_need_summarize,self.summaries,self.character_summarize_prompt)
-        self.summaries_last_record_idx = len(self.history)
+        if self.predict_summary_reflection(histoy_need_summarize,self.summaries,self.character_summarize_prompt):
+            self.summaries_last_record_idx = len(self.history)
+            save_summary_file(self.history_file_path+"_summaries", self,self.character_summarize_prompt)
+
     def reflection(self):
         #从上次到最新的聊天记录作为输入，做一次reflection
         if(len(self.history) - self.reflections_last_record_idx <= 0):
             return
         histoy_need_reflection = self.history[self.reflections_last_record_idx:]
-        self.predict_summary_reflection(histoy_need_reflection,self.reflections,self.character_reflection_prompt)
-        
+        if self.predict_summary_reflection(histoy_need_reflection,self.reflections,self.character_reflection_prompt):
+            self.reflections_last_record_idx = len(self.history)
+            save_summary_file(self.history_file_path+"_summaries", self,self.character_reflection_prompt)
 
     def retrieve(self,query,texts=[]):
         
@@ -550,6 +553,7 @@ class BaseLLMModel:
             traceback.print_exc()
             status_text = STANDARD_ERROR_MSG + beautify_err_msg(str(e))
             logging.debug(f"status_text:f{status_text}")
+            return False
         end_time = time.time()
         if len(results) > 1 :
             logging.info(
@@ -567,9 +571,9 @@ class BaseLLMModel:
             logging.info(status_text)
             status_text = f"为了防止token超限，模型忘记了早期的 {count} 轮对话"
             logging.debug(f"status_text:f{status_text}")
-
-#        self.chatbot = chatbot
-        save_summary_file(self.history_file_path+"_summary", self,prompt)
+        return True
+        
+        
 
     
     def handle_file_upload(self, files, chatbot, language):

@@ -76,7 +76,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         # obj="toolbox"), elem_classes="close-btn")
                                 newCharacterBtn = gr.Button("", elem_id="gr-history-refresh-btn")
                                 uploadFileBtn = gr.UploadButton(
-                                    interactive=True, label="", file_types=[".json"], elem_id="gr-history-upload-btn")
+                                    interactive=True, label="", file_types=[".json"], elem_id="gr-history-upload-btn",visible=False)
                                 # historyRefreshBtn = gr.Button("", elem_id="gr-history-refresh-btn",visible=False)
                                 
 
@@ -136,7 +136,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     )
                     gr.HTML(get_html("chatbot_header_btn.html").format(
                         json_label=i18n("历史记录（JSON）"),
-                        md_label=i18n("导出为 Markdown")
+                        md_label=i18n("导出Summary")
                     ), elem_id="chatbot-header-btn-bar")
                 with gr.Row():
                     chatbot = gr.Chatbot(
@@ -437,7 +437,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     with gr.Tab(label=i18n("关于"), elem_id="about-tab"):
                         gr.Markdown(
                             '<img alt="Chuanhu Chat logo" src="file=web_assets/icon/any-icon-512.png" style="max-width: 144px;">')
-                        gr.Markdown("# "+i18n("川虎Chat"))
+                        gr.Markdown("# "+i18n("Time Traveller"))
                         gr.HTML(get_html("footer.html").format(
                             versions=versions_html()), elem_id="footer")
                         gr.Markdown(CHUANHU_DESCRIPTION, elem_id="description")
@@ -1136,7 +1136,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         js='(a,b)=>{return bgSelectHistory(a,b);}'
     )
 # 默认开启本地服务器，默认可以直接从IP访问，默认不创建公开分享链接
-demo.title = i18n("川虎Chat 🚀")
+demo.title = i18n("Time Traveller 🚀")
 
 if __name__ == "__main__":
     reload_javascript()
