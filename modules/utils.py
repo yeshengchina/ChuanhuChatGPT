@@ -603,10 +603,11 @@ def get_history_list(user_name=""):
 
 def init_history_list(user_name="", prepend=None):
     history_names = get_history_names(user_name)
+    logging.debug(f"init_history_list，history names: {history_names}，prepend为{prepend}")
     if prepend is not None and prepend not in history_names:
         history_names.insert(0, prepend)
     return gr.Radio(
-        choices=history_names, value=history_names[0] if history_names else ""
+        choices=history_names, value=history_names[0] if history_names else None
     )
 
 

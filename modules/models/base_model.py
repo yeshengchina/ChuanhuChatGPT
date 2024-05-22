@@ -1050,7 +1050,9 @@ class BaseLLMModel:
         self.all_token_counts = []
         self.interrupted = False
         self.history_file_path = new_auto_history_filename(self.user_name,filename)
-        history_name = self.history_file_path[:-5]
+        history_name = self.history_file_path
+        if history_name.endswith(".json"):
+            history_name = self.history_file_path[:-5]
         choices = get_history_names(self.user_name)
         if history_name not in choices:
             choices.insert(0, history_name)
@@ -1271,7 +1273,7 @@ class BaseLLMModel:
                 )
             else:
                 history_file_path = self.history_file_path
-            history_file_path += "_summary"
+            history_file_path += "_summaries"
             if not self.history_file_path.endswith(".json"):
                 history_file_path += ".json"
             with open(history_file_path, "r", encoding="utf-8") as f:
