@@ -2,7 +2,7 @@
     // 各配置具体说明，见 [https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#配置-configjson]
 
     //== API 配置 ==
-    "openai_api_key": "sk-cjPrJzZ8CFh9nxG69213865c0d2f41D68d4091D59e0265E4", // 你的 OpenAI API Key，一般必填，若空缺则需在图形界面中填入API Key
+    "openai_api_key": "", // 你的 OpenAI API Key，一般必填，若空缺则需在图形界面中填入API Key
     "google_genai_api_key": "", // 你的 Google Gemini API Key ，用于 Google Gemini 对话模型
     "xmchat_api_key": "", // 你的 xmchat API Key，用于 XMChat 对话模型
     "minimax_api_key": "", // 你的 MiniMax API Key，用于 MiniMax 对话模型
