@@ -42,8 +42,8 @@ class OpenAIVisionClient(BaseLLMModel):
             self.api_host, self.chat_completion_url, self.images_completion_url, self.openai_api_base, self.balance_api_url, self.usage_api_url = shared.state.api_host, shared.state.chat_completion_url, shared.state.images_completion_url, shared.state.openai_api_base, shared.state.balance_api_url, shared.state.usage_api_url
         self._refresh_header()
 
-    def get_answer_stream_iter(self):
-        response = self._get_response(stream=True)
+    def get_answer_stream_iter(self,prompt=None):
+        response = self._get_response(prompt=prompt,stream=True)
         if response is not None:
             iter = self._decode_chat_response(response)
             partial_text = ""
@@ -149,9 +149,12 @@ class OpenAIVisionClient(BaseLLMModel):
 
 
     @shared.state.switching_api_key  # 在不开启多账号模式的时候，这个装饰器不会起作用
-    def _get_response(self, stream=False):
+    def _get_response(self,prompt=None, stream=False):
         openai_api_key = self.api_key
         system_prompt = self.system_prompt
+        if prompt is not None:
+            system_prompt = prompt
+        system_prompt = self.retrieve_summary_reflection("", system_prompt)
         history = self._get_gpt4v_style_history()
 
         logging.debug(colorama.Fore.YELLOW +
@@ -163,6 +166,8 @@ class OpenAIVisionClient(BaseLLMModel):
 
         if system_prompt is not None:
             history = [construct_system(system_prompt), *history]
+            
+        logging.info(f"OpenAI发送请求,system prompt: {system_prompt}")
 
         payload = {
             "model": self.model_name,

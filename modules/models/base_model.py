@@ -488,14 +488,15 @@ class BaseLLMModel:
                 model="text-embedding-3-large",
             )
         else:
-            embeddings = AzureOpenAIEmbeddings(
-                azure_deployment=os.environ["AZURE_EMBEDDING_DEPLOYMENT_NAME"],
-                openai_api_key=os.environ["AZURE_OPENAI_API_KEY"],
-                openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
-                model=os.environ["AZURE_EMBEDDING_MODEL_NAME"],
-                azure_endpoint="https://tt-us00.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings?api-version=2024-03-01-preview",
-                openai_api_type="azure",
-            )
+            raise Exception("not support openai api type")
+            # embeddings = AzureOpenAIEmbeddings(
+            #     azure_deployment=os.environ["AZURE_EMBEDDING_DEPLOYMENT_NAME"],
+            #     openai_api_key=os.environ["AZURE_OPENAI_API_KEY"],
+            #     openai_api_version=os.environ["AZURE_OPENAI_API_VERSION"],
+            #     model=os.environ["AZURE_EMBEDDING_MODEL_NAME"],
+            #     azure_endpoint="https://tt-us00.openai.azure.com/openai/deployments/text-embedding-ada-002/embeddings?api-version=2024-03-01-preview",
+            #     openai_api_type="azure",
+            # )
         # embeddings = OpenAIEmbeddings(
         #     openai_api_key=self.api_key,
         #     openai_api_base=os.environ.get("OPENAI_API_BASE", None),
@@ -506,6 +507,7 @@ class BaseLLMModel:
         db = FAISS.from_documents(docs, embeddings)
         retriever = db.as_retriever(search_type="similarity_score_threshold", search_kwargs={"k": 3,'score_threshold': 0.5})
         relevant_documents = retriever.get_relevant_documents(query)
+        logging.info(f"relevant_documents: {relevant_documents},inputs:{query},docs: {docs}")
         return relevant_documents
     
     def predict_summary_reflection(
@@ -1029,7 +1031,9 @@ class BaseLLMModel:
         self.auto_save()
 
     def set_system_prompt(self, new_system_prompt):
-        self.system_prompt = new_system_prompt
+        logging.info(f"设置system prompt为：{new_system_prompt}")
+        if len(new_system_prompt) > 0:
+            self.system_prompt = new_system_prompt
         self.auto_save()
 
     def set_key(self, new_access_key):
@@ -1127,7 +1131,8 @@ class BaseLLMModel:
         self.reflections = []       #存放每天的reflection
         self.reflections_lastday = ""
         self.reflections_last_record_idx = 0
-    def save_character_setting(self,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox):
+    def save_character_setting(self,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,character_goal_txtbox,
+                               character_introduction,character_activedialogue_prompt,character_dialogue_prompt,character_gesture_prompt,character_summarize_prompt,character_reflection_prompt):
         #先尝试load一下文件，文件不存在则初始化history等其他变量,因为这是新建角色；文件存在说明是更新角色设置
         names = get_history_names(self.user_name)
         if character_role_txtbox not in names:
@@ -1145,22 +1150,32 @@ class BaseLLMModel:
         self.character_setting["Facial expression"] = character_facialexpression_txtbox
         self.character_setting["Body movements"] = character_bodymovements_txtbox
         self.character_setting["Goal"] = character_goal_txtbox
-        logging.info(f"保存角色设定为：{self.character_setting},此时chatbot为{self.chatbot}")
-        self.history_file_path = character_role_txtbox
-        save_file(character_role_txtbox, self, self.chatbot)
-    def save_character_prompts(self,chatbot,character_introduction,character_activedialogue_prompt,character_dialogue_prompt,character_gesture_prompt,character_summarize_prompt,character_reflection_prompt):
-        names = get_history_names(self.user_name)
-        if self.character_setting["Role"] not in names:
-            self.reset_model()
+
+        logging.info(f"保存角色设定为：{self.character_setting}")
         self.character_introduction = character_introduction
         self.character_activedialog_prompt = character_activedialogue_prompt
         self.character_dialog_prompt = character_dialogue_prompt
         self.character_gesture_prompt = character_gesture_prompt
         self.character_summarize_prompt = character_summarize_prompt
         self.character_reflection_prompt = character_reflection_prompt
-        self.history_file_path = self.character_setting["Role"]
-        logging.info(f"保存角色prompt为：{self.character_setting},此时chatbot为{self.chatbot}")
-        save_file(self.character_setting["Role"], self, self.chatbot)
+        logging.info(f"保存角色prompt为：{self.character_introduction}--{self.character_activedialog_prompt}--{self.character_dialog_prompt}--{self.character_gesture_prompt}--{self.character_summarize_prompt}--{self.character_reflection_prompt}")
+
+        self.system_prompt = character_dialogue_prompt
+        self.history_file_path = character_role_txtbox
+        save_file(character_role_txtbox, self, self.chatbot)
+    # def save_character_prompts(self,chatbot,character_introduction,character_activedialogue_prompt,character_dialogue_prompt,character_gesture_prompt,character_summarize_prompt,character_reflection_prompt):
+    #     names = get_history_names(self.user_name)
+    #     if self.character_setting["Role"] not in names:
+    #         self.reset_model()
+    #     self.character_introduction = character_introduction
+    #     self.character_activedialog_prompt = character_activedialogue_prompt
+    #     self.character_dialog_prompt = character_dialogue_prompt
+    #     self.character_gesture_prompt = character_gesture_prompt
+    #     self.character_summarize_prompt = character_summarize_prompt
+    #     self.character_reflection_prompt = character_reflection_prompt
+    #     self.history_file_path = self.character_setting["Role"]
+    #     logging.info(f"保存角色prompt为：{self.character_setting}")
+    #     save_file(self.character_setting["Role"], self, self.chatbot)
 
     def delete_first_conversation(self):
         if self.history:
@@ -1251,7 +1266,6 @@ class BaseLLMModel:
         files,
         reply_language):
         logging.debug(f"{self.user_name} 选中角色，切换prompt……")
-        # self.system_prompt = self.character_activedialog_prompt
         iter = self.predict(inputs,
                     chatbot,
                     stream,
@@ -1262,7 +1276,6 @@ class BaseLLMModel:
         for i in iter:
             yield i
         
-        # self.system_prompt = self.character_dialog_prompt
 
     def load_summary_file(self):
         history_file_path = ""
@@ -1382,6 +1395,7 @@ class BaseLLMModel:
             self.character_summarize_prompt = saved_json.get("character_summarize_prompt", self.character_summarize_prompt)
             self.character_reflection_prompt = saved_json.get("character_reflection_prompt", self.character_reflection_prompt)
             self.chatbot = saved_json["chatbot"]
+            self.system_prompt = self.character_dialog_prompt
             logging.debug(f"character_setting:{self.character_setting} ")
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
             self.load_summary_file()
@@ -1528,7 +1542,26 @@ class BaseLLMModel:
             return os.path.splitext(image_path)[1][1:].lower()
         else:
             return "jpeg"
-
+    def retrieve_summary_reflection(self,inputs,prompt):
+        if self.history[-1]["role"] == "user":
+            inputs = self.history[-1]["content"]
+        retrieve_documents = []
+        
+        if len(self.summaries) > 0 :
+            response_summaries = [summary for summary in self.summaries if isinstance(summary, dict)]
+            if len(response_summaries) > 0:
+                retrieve_documents = self.retrieve(inputs,response_summaries)
+        if len(self.reflections) > 0 :
+            response_reflections = [reflection for reflection in self.reflections if isinstance(reflection, dict)]
+            if len(response_reflections) > 0:
+                retrieve_documents += self.retrieve(inputs,response_reflections)
+        return prompt.replace("{Retrieved LongMemory}", "\n\n".join([d.page_content for d in retrieve_documents])).replace(
+            "{user input}", inputs).replace("{user name}", self.user_name).replace("{Role}", self.character_setting["Role"]).replace(
+            "{Nickname}", self.character_setting["Nickname"]).replace("{Background}", self.character_setting["Background"]).replace(
+            "{Personality}", self.character_setting["Personality"]).replace("{Emotions}", self.character_setting["Emotions"]).replace(
+            "{Voice}", self.character_setting["Voice"]).replace("{DialogStyle}", self.character_setting["DialogStyle"]).replace(
+            "{Facial expression}", self.character_setting["Facial expression"]).replace("{Body movements}", self.character_setting["Body movements"]).replace(
+                "{Goal}", self.character_setting["Goal"])
 
 class Base_Chat_Langchain_Client(BaseLLMModel):
     def __init__(self, model_name, user_name=""):
@@ -1543,26 +1576,11 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
     def _get_langchain_style_history(self,prompt=None):
         if prompt is None:
             prompt = self.system_prompt
+        else:
+            logging.info(f"prompt is not None, use prompt: {prompt}")
         #把system prompt加入长期记忆
         inputs = ""
-        if self.history[-1] == "user":
-            inputs = self.history[-1]["content"]
-        retrieve_documents = []
-        if len(self.summaries) > 0 :
-            response_summaries = [summary for summary in self.summaries if isinstance(summary, dict)]
-            if len(response_summaries) > 0:
-                retrieve_documents = self.retrieve(inputs,response_summaries)
-        if len(self.reflections) > 0 :
-            response_reflections = [reflection for reflection in self.reflections if isinstance(reflection, dict)]
-            if len(response_reflections) > 0:
-                retrieve_documents += self.retrieve(inputs,response_reflections)
-        prompt = prompt.replace("{Retrieved LongMemory}", "\n\n".join([d.page_content for d in retrieve_documents])).replace(
-            "{user input}", inputs).replace("{user name}", self.user_name).replace("{Role}", self.character_setting["Role"]).replace(
-            "{Nickname}", self.character_setting["Nickname"]).replace("{Background}", self.character_setting["Background"]).replace(
-            "{Personality}", self.character_setting["Personality"]).replace("{Emotions}", self.character_setting["Emotions"]).replace(
-            "{Voice}", self.character_setting["Voice"]).replace("{DialogStyle}", self.character_setting["DialogStyle"]).replace(
-            "{Facial expression}", self.character_setting["Facial expression"]).replace("{Body movements}", self.character_setting["Body movements"])
-        
+        prompt = self.retrieve_summary_reflection(inputs,prompt)
         history = [SystemMessage(content=prompt)]
         for i in self.history:
             if i["role"] == "user":
@@ -1571,15 +1589,6 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
                 history.append(AIMessage(content=i["content"]))
         return history
 
-
-        prompt = self.system_prompt
-        history = [SystemMessage(content=self.system_prompt)]
-        for i in self.history:
-            if i["role"] == "user":
-                history.append(HumanMessage(content=i["content"]))
-            elif i["role"] == "assistant":
-                history.append(AIMessage(content=i["content"]))
-        return history
 
     def get_answer_at_once(self):
         assert isinstance(

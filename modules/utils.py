@@ -60,10 +60,10 @@ def load_chat_history(current_model, *args):
 def character_select(current_model, chatbot,*args):
     userinput = ""
     if len(chatbot) == 0:
-        current_model.system_prompt = current_model.character_introduction
+        set_system_prompt(current_model,current_model.character_introduction)
         userinput = "Please introduce yourself" 
     else:
-        current_model.system_prompt = current_model.character_activedialog_prompt
+        set_system_prompt(current_model,current_model.character_activedialog_prompt)
         userinput = "initiate conversations based on who you are"
     
     new_args = (userinput,) + args
@@ -71,7 +71,8 @@ def character_select(current_model, chatbot,*args):
     iter = current_model.predict(*new_args)
     for i in iter:
         yield i
-    current_model.system_prompt = current_model.character_dialog_prompt
+    set_system_prompt(current_model,current_model.character_dialog_prompt)
+    
 
 def delete_chat_history(current_model, *args):
     return current_model.delete_chat_history(*args)
@@ -95,9 +96,10 @@ def checkboxSelect(checkBox1,txtBox,evt:gr.SelectData):
 def gesture_fill_inputs(gesture_dest):
     return gr.update(value=gesture_dest)
 def save_character_setting(current_model, *args):
+    logging.info(f"Utils.py的save_character_setting被调用")
     return current_model.save_character_setting(*args)
-def save_character_prompts(current_model, *args):
-    return current_model.save_character_prompts(*args)
+# def save_character_prompts(current_model, *args):
+#     return current_model.save_character_prompts(*args)
 
 def delete_first_conversation(current_model, *args):
     return current_model.delete_first_conversation(*args)

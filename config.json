@@ -22,7 +22,7 @@
     "groq_api_key": "", // 你的 Groq API Key，用于 Groq 对话模型(https://console.groq.com/)
 
     //== Azure ==
-    "openai_api_type": "azure", // 可选项：azure, openai
+    "openai_api_type": "openai", // 可选项：azure, openai
     "azure_openai_api_key": "6f6aaa792bfc4acf878b9f6d5199355c", // 你的 Azure OpenAI API Key，用于 Azure OpenAI 对话模型
     "azure_openai_api_base_url": "https://tt-us00.openai.azure.com/openai/deployments/gpt-35-turbo-16k", // 你的 Azure Base URL
     "azure_openai_api_version": "2024-03-01-preview", // 你的 Azure OpenAI API 版本

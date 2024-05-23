@@ -242,6 +242,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 placeholder=i18n("在这里输入System Prompt..."),
                                 label="System prompt",
                                 value=INITIAL_SYSTEM_PROMPT,
+                                visible=False,
                                 lines=8
                             )
                             retain_system_prompt_checkbox = gr.Checkbox(
@@ -443,108 +444,153 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                         gr.Markdown(CHUANHU_DESCRIPTION, elem_id="description")
             with gr.Group(elem_id="chuanhu-character"):
                 with gr.Row():
-                    gr.Markdown("## "+i18n("角色"))
+                    gr.Markdown("## "+i18n("角色设置"))
                     gr.HTML(get_html("close_btn.html").format(
                         obj="box"), elem_classes="close-btn")
+                with gr.Row(variant='panel'):
+                    gr.Textbox(value=i18n("姓名"),lines=1,interactive=False,show_label=False)
+                    character_role_txtbox = gr.Textbox(
+                                        show_label=False,
+                                        label=i18n("Role"),
+                                        interactive=True,
+                                        lines=1,
+                                        scale=2,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
                 with gr.Row():
-                    with gr.Column():
+                    with gr.Tabs():
+                        with gr.Tab(label="Prompts"):
+                            with gr.Group():
+                                with gr.Tabs():
+                                    with gr.Tab(label= "Self introduction"):
+                                        
+                                        character_introduction_prompt = gr.Textbox(                         
+                                        lines=10                           
+                                        )
+                                        
+                                    with gr.Tab(label= "Active Dialog system prompt"):
+                                        character_activedialogsystem_prompt = gr.Textbox(                        
+                                        lines=10                           
+                                        )
+                                    with gr.Tab(label= "Dialog system prompt"):
+                                        character_dialogsystem_prompt = gr.Textbox(                          
+                                        lines=10                           
+                                        )
+                                    with gr.Tab(label= "Gesture prompt"):
+                                        character_gesture_prompt = gr.Textbox(                         
+                                        lines=10                           
+                                        )
+                                    with gr.Tab(label= "Summarize prompt"):
+                                        character_summarize_prompt = gr.Textbox(                         
+                                        lines=10                           
+                                    )
+                                    with gr.Tab(label= "Reflection prompt"):
+                                        character_reflection_prompt = gr.Textbox(                         
+                                        lines=10                           
+                                    )
+                        with gr.Tab(label= "Keywords"):
+                            with gr.Row():
+                                with gr.Column():
+                                    
+                                    
+                                    character_nickname_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Nick Name"),
+                                        interactive=True,
+                                        lines=1,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_background_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Background"),
+                                        interactive=True,
+                                        lines=3,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_personality_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Personality"),
+                                        interactive=True,
+                                        lines=3,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_emotions_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Emotions"),
+                                        interactive=True,
+                                        lines=2,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_voice_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Voice"),
+                                        interactive=True,
+                                        lines=1,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_dialogstyle_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("DialogStyle"),
+                                        interactive=True,
+                                        lines=3,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_knowledge_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Knowledge"),
+                                        interactive=True,
+                                        lines=3,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_facialexpression_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Facial expression"),
+                                        interactive=True,
+                                        lines=3,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_bodymovements_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Body movements"),
+                                        interactive=True,
+                                        lines=3,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    character_goal_txtbox = gr.Textbox(
+                                        show_label=True,
+                                        label=i18n("Goal"),
+                                        interactive=True,
+                                        lines=3,
+                                        # container=False,
+                                        # elem_classes="view-only-textbox no-container",
+                                    )
+                                    # with gr.Row(elem_id="save-btn"):
+                                    #     character_save_btn = gr.Button(
+                                    #         i18n("保存"),
+                                    #         elem_classes="save-btn",
+                                    #     )
+                                    #     gr.HTML(get_html("close_btn.html").format(
+                                    # obj="box"), elem_classes="close-btn")
                         
-                        character_role_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Role"),
-                            interactive=True,
-                            lines=1,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
+                with gr.Row(elem_id="save-btn"):
+                        character_setting_save_btn  = gr.Button(
+                            i18n("保存"),
+                            size = "sm",
+                            elem_id="save-btn",
                         )
-                        character_nickname_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Nick Name"),
-                            interactive=True,
-                            lines=1,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_background_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Background"),
-                            interactive=True,
-                            lines=3,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_personality_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Personality"),
-                            interactive=True,
-                            lines=3,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_emotions_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Emotions"),
-                            interactive=True,
-                            lines=2,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_voice_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Voice"),
-                            interactive=True,
-                            lines=1,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_dialogstyle_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("DialogStyle"),
-                            interactive=True,
-                            lines=3,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_knowledge_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Knowledge"),
-                            interactive=True,
-                            lines=3,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_facialexpression_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Facial expression"),
-                            interactive=True,
-                            lines=3,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_bodymovements_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Body movements"),
-                            interactive=True,
-                            lines=3,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        character_goal_txtbox = gr.Textbox(
-                            show_label=True,
-                            label=i18n("Goal"),
-                            interactive=True,
-                            lines=3,
-                            # container=False,
-                            elem_classes="view-only-textbox no-container",
-                        )
-                        with gr.Row(elem_id="save-btn"):
-                            character_save_btn = gr.Button(
-                                i18n("保存"),
-                                elem_classes="save-btn",
-                            )
-                            gr.HTML(get_html("close_btn.html").format(
-                        obj="box"), elem_classes="close-btn")
-
+                        
+                        gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn") 
             with gr.Group(elem_id="chuanhu-prompts"):
                 
                 with gr.Row():
@@ -554,28 +600,28 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                 with gr.Tabs():
                     with gr.Tab(label= "Self-introduction"):
                         
-                        character_introduction_prompt = gr.Textbox(                         
+                        character_introduction_prompt_legency = gr.Textbox(                         
                         lines=10                           
                         )
                         
                     with gr.Tab(label= "Active Dialog system prompt"):
-                        character_activedialogsystem_prompt = gr.Textbox(                        
+                        character_activedialogsystem_prompt_legency = gr.Textbox(                        
                         lines=10                           
                         )
                     with gr.Tab(label= "Dialog system prompt"):
-                        character_dialogsystem_prompt = gr.Textbox(                          
+                        character_dialogsystem_prompt_legency = gr.Textbox(                          
                         lines=10                           
                         )
                     with gr.Tab(label= "Gesture prompt"):
-                        character_gesture_prompt = gr.Textbox(                         
+                        character_gesture_prompt_legency = gr.Textbox(                         
                         lines=10                           
                         )
                     with gr.Tab(label= "Summarize prompt"):
-                        character_summarize_prompt = gr.Textbox(                         
+                        character_summarize_prompt_legency = gr.Textbox(                         
                         lines=10                           
                     )
                     with gr.Tab(label= "Reflection prompt"):
-                        character_reflection_prompt = gr.Textbox(                         
+                        character_reflection_prompt_legency = gr.Textbox(                         
                         lines=10                           
                     )
                 with gr.Row(elem_id="save-btn"):
@@ -883,16 +929,18 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
         """)
     
         
-    character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,
-        character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,
-        character_goal_txtbox],[]).then(**refresh_history_args).then(**load_history_from_file_args).then(fn=lambda:None,js="""
-        function() {    
-            closeBtnClick("box");
-        }
-        """)
+    # character_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,
+    #     character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,
+    #     character_goal_txtbox],[]).then(**refresh_history_args).then(**load_history_from_file_args).then(fn=lambda:None,js="""
+    #     function() {    
+    #         closeBtnClick("box");
+    #     }
+    #     """)
     
-    prompt_save_btn.click(save_character_prompts,[current_model,chatbot,character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,
-        character_gesture_prompt,character_summarize_prompt,character_reflection_prompt],[]).then(fn=lambda:None,js="""
+    character_setting_save_btn.click(save_character_setting,[current_model,chatbot,character_role_txtbox,character_nickname_txtbox,character_background_txtbox,character_personality_txtbox,
+        character_emotions_txtbox,character_voice_txtbox,character_dialogstyle_txtbox,character_knowledge_txtbox,character_facialexpression_txtbox,character_bodymovements_txtbox,
+        character_goal_txtbox,character_introduction_prompt,character_activedialogsystem_prompt,character_dialogsystem_prompt,
+        character_gesture_prompt,character_summarize_prompt,character_reflection_prompt],[]).then(**refresh_history_args).then(**load_history_from_file_args).then(fn=lambda:None,js="""
         function() {    
             closeBtnClick("box");
         }
@@ -985,8 +1033,8 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                                 top_p_slider, systemPromptTxt, user_name, current_model], [current_model, status_display, chatbot, modelDescription], show_progress=True)
 
     # Template
-    systemPromptTxt.change(set_system_prompt, [
-                           current_model, systemPromptTxt], None)
+    # systemPromptTxt.change(set_system_prompt, [
+    #                        current_model, systemPromptTxt], None)
     templateRefreshBtn.click(get_template_dropdown, None, [
                              templateFileSelectDropdown])
     templateFileSelectDropdown.input(
