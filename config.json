@@ -2,7 +2,7 @@
     // 各配置具体说明，见 [https://github.com/GaiZhenbiao/ChuanhuChatGPT/wiki/使用教程#配置-configjson]
 
     //== API 配置 ==
-    "openai_api_key": "sk-proj-jFRjmFNWNbwH33T9NxuOT3BlbkFJrm9zYEpDssvroL93Lv65", // 你的 OpenAI API Key，一般必填，若空缺则需在图形界面中填入API Key
+    "openai_api_key": "sk-cjPrJzZ8CFh9nxG69213865c0d2f41D68d4091D59e0265E4", // 你的 OpenAI API Key，一般必填，若空缺则需在图形界面中填入API Key
     "google_genai_api_key": "", // 你的 Google Gemini API Key ，用于 Google Gemini 对话模型
     "xmchat_api_key": "", // 你的 xmchat API Key，用于 XMChat 对话模型
     "minimax_api_key": "", // 你的 MiniMax API Key，用于 MiniMax 对话模型
@@ -22,7 +22,7 @@
     "groq_api_key": "", // 你的 Groq API Key，用于 Groq 对话模型(https://console.groq.com/)
 
     //== Azure ==
-    "openai_api_type": "openai", // 可选项：azure, openai
+    "openai_api_type": "azure", // 可选项：azure, openai
     "azure_openai_api_key": "6f6aaa792bfc4acf878b9f6d5199355c", // 你的 Azure OpenAI API Key，用于 Azure OpenAI 对话模型
     "azure_openai_api_base_url": "https://tt-us00.openai.azure.com/openai/deployments/gpt-35-turbo-16k", // 你的 Azure Base URL
     "azure_openai_api_version": "2024-03-01-preview", // 你的 Azure OpenAI API 版本
@@ -36,7 +36,7 @@
     "local_embedding": false, //是否在本地编制索引
     "hide_history_when_not_logged_in": true, //未登录情况下是否不展示对话历史
     "check_update": true, //是否启用检查更新
-    "default_model": "GPT-4o", // 默认模型
+    "default_model": "Azure OpenAI", // 默认模型
     "chat_name_method_index": 2, // 选择对话名称的方法。0: 使用日期时间命名；1: 使用第一条提问命名，2: 使用模型自动总结
     "bot_avatar": "default", // 机器人头像，可填写本地或网络图片链接，或者"none"（不显示头像）
     "user_avatar": "default", // 用户头像，可填写本地或网络图片链接，或者"none"（不显示头像）
