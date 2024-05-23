@@ -150,5 +150,6 @@ tmp/
 scripts/
 include/
 pyvenv.cfg
+config.json
 
 create_release.sh
