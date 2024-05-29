@@ -157,8 +157,6 @@ class OpenAIVisionClient(BaseLLMModel):
         system_prompt = self.retrieve_summary_reflection("", system_prompt)
         history = self._get_gpt4v_style_history()
 
-        logging.debug(colorama.Fore.YELLOW +
-                      f"{history}" + colorama.Fore.RESET)
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {openai_api_key}",
@@ -167,7 +165,7 @@ class OpenAIVisionClient(BaseLLMModel):
         if system_prompt is not None:
             history = [construct_system(system_prompt), *history]
             
-        logging.info(f"OpenAI发送请求,system prompt: {system_prompt}")
+        logging.info(f"OpenAI发送请求,system prompt: {system_prompt},history: {history}")
 
         payload = {
             "model": self.model_name,

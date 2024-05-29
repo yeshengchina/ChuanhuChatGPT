@@ -399,6 +399,7 @@ class BaseLLMModel:
             status_text = self.token_message()
             yield get_return_value()
         #回答放入summaries中而不是history中
+        logging.info(f"收到summary llm回复：{partial_text}，prompt：{prompt}，input：{inputs}")
         results.append(construct_assistant(partial_text))
         
     def stream_next_chatbot(self, inputs, chatbot, fake_input=None, display_append=""):
@@ -573,12 +574,13 @@ class BaseLLMModel:
         end_time = time.time()
         if len(results) > 1 :
             logging.info(
-                "回答为："
+                "summary_reflection回答为："
                 + colorama.Fore.BLUE
                 + f"{results[-1]['content']}"
                 + colorama.Style.RESET_ALL
             )
-            logging.info(i18n("Tokens per second：{token_generation_speed}").format(token_generation_speed=str(self.all_token_counts[-1] / (end_time - start_time))))
+            if len(self.all_token_counts) > 0:
+                logging.info(i18n("Tokens per second：{token_generation_speed}").format(token_generation_speed=str(self.all_token_counts[-1] / (end_time - start_time))))
 
         max_token = self.token_upper_limit - TOKEN_OFFSET
 
@@ -828,7 +830,7 @@ class BaseLLMModel:
             chatbot=chatbot,
         )
         
-        logging.debug(f"limit_context: {limited_context},fake_inputs: {fake_inputs},display_append: {display_append},inputs: {inputs},chatbot: {chatbot}")
+        logging.debug(f"limit_context: {limited_context},fake_inputs: {fake_inputs},display_append: {display_append},inputs: {inputs}")
         yield chatbot + [(fake_inputs, "")], status_text
 
         if (
@@ -1072,6 +1074,7 @@ class BaseLLMModel:
         history_name = self.history_file_path
         if history_name.endswith(".json"):
             history_name = self.history_file_path[:-5]
+            logging.info(f"reset被调用，history_name为{history_name}")
         choices = get_history_names(self.user_name)
         if history_name not in choices:
             choices.insert(0, history_name)
@@ -1414,6 +1417,7 @@ class BaseLLMModel:
             logging.debug(f"character_setting:{self.character_setting} ")
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
             self.load_summary_file()
+            logging.info(f"load_chat_history return,hisotry_file_path: {os.path.basename(self.history_file_path)[:-5]}")
             return (
                 os.path.basename(self.history_file_path)[:-5],
                 saved_json["system"],
