@@ -64,7 +64,7 @@ def character_select(current_model, chatbot,*args):
         userinput = "Please introduce yourself" 
     else:
         set_system_prompt(current_model,current_model.character_activedialog_prompt)
-        userinput = "ask me something based on who you are"
+        userinput = "ask me something"
     
     new_args = (userinput,) + args
     
