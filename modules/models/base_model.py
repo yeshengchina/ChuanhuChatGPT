@@ -894,7 +894,8 @@ class BaseLLMModel:
                 + f"{self.history[-1]['content']}"
                 + colorama.Style.RESET_ALL
             )
-            logging.info(i18n("Tokens per second：{token_generation_speed}").format(token_generation_speed=str(self.all_token_counts[-1] / (end_time - start_time))))
+            if len(self.all_token_counts) >0:
+                logging.info(i18n("Tokens per second：{token_generation_speed}").format(token_generation_speed=str(self.all_token_counts[-1] / (end_time - start_time))))
 
         if limited_context:
             # self.history = self.history[-4:]
