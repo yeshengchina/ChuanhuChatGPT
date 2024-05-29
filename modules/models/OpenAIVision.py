@@ -166,7 +166,7 @@ class OpenAIVisionClient(BaseLLMModel):
             history = [construct_system(system_prompt), *history]
             
         logging.info(f"OpenAI发送请求,system prompt: {system_prompt},history: {history}")
-
+        self.retrieved_prompt = system_prompt
         payload = {
             "model": self.model_name,
             "messages": history,

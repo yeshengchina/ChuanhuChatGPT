@@ -281,6 +281,7 @@ class BaseLLMModel:
         self.placeholder = config["placeholder"]
         self.token_upper_limit = config["token_limit"]
         self.system_prompt = config["system"]
+        self.retrieved_prompt = ""
         self.api_key = config["api_key"]
         self.api_host = config["api_host"]
 
@@ -399,8 +400,8 @@ class BaseLLMModel:
             status_text = self.token_message()
             yield get_return_value()
         #回答放入summaries中而不是history中
-        logging.info(f"收到summary llm回复：{partial_text}，prompt：{prompt}，input：{inputs}")
-        results.append(construct_assistant(partial_text,prompt))
+        logging.info(f"收到summary llm回复：{partial_text}，prompt：{self.retrieved_prompt}，input：{inputs}")
+        results.append(construct_assistant(partial_text,self.retrieved_prompt))
         
     def stream_next_chatbot(self, inputs, chatbot, fake_input=None, display_append=""):
         def get_return_value():
@@ -434,7 +435,7 @@ class BaseLLMModel:
             if self.interrupted:
                 self.recover()
                 break
-        self.history.append(construct_assistant(partial_text,self.system_prompt))
+        self.history.append(construct_assistant(partial_text,self.retrieved_prompt))
         self.summarize()
 
     def next_chatbot_at_once(self, inputs, chatbot, fake_input=None, display_append=""):
@@ -448,12 +449,12 @@ class BaseLLMModel:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
         ai_reply, total_token_count = self.get_answer_at_once()
-        self.history.append(construct_assistant(ai_reply,self.system_prompt))
+        self.history.append(construct_assistant(ai_reply,self.retrieved_prompt))
         if fake_input is not None:
             self.history[-2] = construct_user(fake_input)
         chatbot[-1] = (chatbot[-1][0], ai_reply + display_append)
         if fake_input is not None:
-            self.all_token_counts[-1] += count_token(construct_assistant(ai_reply,self.system_prompt))
+            self.all_token_counts[-1] += count_token(construct_assistant(ai_reply,self.retrieved_prompt))
         else:
             self.all_token_counts[-1] = total_token_count - sum(self.all_token_counts)
         status_text = self.token_message()
@@ -1372,7 +1373,7 @@ class BaseLLMModel:
                         if index % 2 == 0:
                             new_history.append(construct_user(item))
                         else:
-                            new_history.append(construct_assistant(item,self.system_prompt))
+                            new_history.append(construct_assistant(item,self.retrieved_prompt))
                     saved_json["history"] = new_history
                     logging.info(new_history)
             except:
@@ -1604,6 +1605,7 @@ class Base_Chat_Langchain_Client(BaseLLMModel):
         #把system prompt加入长期记忆
         inputs = ""
         prompt = self.retrieve_summary_reflection(inputs,prompt)
+        self.retrieved_prompt = prompt
         history = [SystemMessage(content=prompt)]
         for i in self.history:
             if i["role"] == "user":
