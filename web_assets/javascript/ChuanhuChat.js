@@ -41,6 +41,7 @@ var promptsBox = null;
 var characterBox = null;
 var modelBox = null;
 var gestureBox = null;
+var curPromptBox = null;
 var boxes = []
 
 var popupWrapper = null;
@@ -107,12 +108,14 @@ function initialize() {
     modelBox = gradioApp().querySelector('#chuanhu-model');
     gestureBox = gradioApp().querySelector('#chuanhu-gesture');
     trainingBox = gradioApp().querySelector('#chuanhu-training');
+    curPromptBox = gradioApp().querySelector('#chuanhu-current-prompt');
     boxes.push({ id: 1, name: settingBox });
     boxes.push({ id: 2, name: trainingBox });
     boxes.push({ id: 3, name: characterBox });
     boxes.push({ id: 4, name: promptsBox });
     boxes.push({ id: 5, name: modelBox });
     boxes.push({ id: 6, name: gestureBox });
+    boxes.push({ id: 7, name: curPromptBox });
     popupWrapper = gradioApp().querySelector('#popup-wrapper');
     chuanhuHeader = gradioApp().querySelector('#chuanhu-header');
     menu = gradioApp().querySelector('#menu-area');

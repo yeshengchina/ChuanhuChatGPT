@@ -136,6 +136,15 @@ function addChuanhuButton(botElement) {
     });
     // botElement.appendChild(copyButton);
 
+    var movementButton = document.createElement('button');
+    movementButton.classList.add('chuanhu-btn');
+    movementButton.classList.add('movement-btn');
+    movementButton.setAttribute('aria-label', 'Delete');
+    movementButton.innerHTML = deleteIcon + `<span>${i18n(movement_i18n)}</span>`;
+    var gradioMovementBtn = gradioApp().querySelector('#gr-movement-btn');
+    movementButton.addEventListener('click', () => {
+        openPromptsBox();
+    });
     // Toggle button
     var toggleButton = document.createElement('button');
     toggleButton.classList.add('chuanhu-btn');
@@ -143,16 +152,18 @@ function addChuanhuButton(botElement) {
     toggleButton.setAttribute('aria-label', 'Toggle');
     var renderMarkdown = mdMessage.classList.contains('hideM');
     toggleButton.innerHTML = renderMarkdown ? mdIcon : rawIcon;
+    var showPromptBtn = gradioApp().querySelector('#gr-showprompt-btn');
     toggleButton.addEventListener('click', () => {
-        renderMarkdown = mdMessage.classList.contains('hideM');
-        if (renderMarkdown) {
-            renderMarkdownText(botElement);
-            toggleButton.innerHTML = rawIcon;
-        } else {
-            removeMarkdownText(botElement);
-            toggleButton.innerHTML = mdIcon;
-        }
-        chatbotContentChanged(1); // to set md or raw in read-only history html
+        openCurrentPrompsBox();
+        // renderMarkdown = mdMessage.classList.contains('hideM');
+        // if (renderMarkdown) {
+        //     renderMarkdownText(botElement);
+        //     toggleButton.innerHTML = rawIcon;
+        // } else {
+        //     removeMarkdownText(botElement);
+        //     toggleButton.innerHTML = mdIcon;
+        // }
+        // chatbotContentChanged(1); // to set md or raw in read-only history html
     });
     // botElement.insertBefore(toggleButton, copyButton);
 

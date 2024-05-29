@@ -400,8 +400,14 @@ def construct_system(text):
     return construct_text("system", text)
 
 
-def construct_assistant(text):
-    return construct_text("assistant", text)
+def construct_assistant(text,prompt):
+    assist = construct_text("assistant", text)
+    assist["prompt"] = prompt
+    return assist
+
+def export_history_json(filename,model):
+    if not filename.endswith(".json"):
+            filename += ".json"
 def export_csv(filename,model):
     
     if not filename.endswith(".csv"):

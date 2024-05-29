@@ -400,7 +400,7 @@ class BaseLLMModel:
             yield get_return_value()
         #回答放入summaries中而不是history中
         logging.info(f"收到summary llm回复：{partial_text}，prompt：{prompt}，input：{inputs}")
-        results.append(construct_assistant(partial_text))
+        results.append(construct_assistant(partial_text,prompt))
         
     def stream_next_chatbot(self, inputs, chatbot, fake_input=None, display_append=""):
         def get_return_value():
@@ -434,7 +434,7 @@ class BaseLLMModel:
             if self.interrupted:
                 self.recover()
                 break
-        self.history.append(construct_assistant(partial_text))
+        self.history.append(construct_assistant(partial_text,self.system_prompt))
         self.summarize()
 
     def next_chatbot_at_once(self, inputs, chatbot, fake_input=None, display_append=""):
@@ -448,12 +448,12 @@ class BaseLLMModel:
             user_token_count = self.count_token(inputs)
         self.all_token_counts.append(user_token_count)
         ai_reply, total_token_count = self.get_answer_at_once()
-        self.history.append(construct_assistant(ai_reply))
+        self.history.append(construct_assistant(ai_reply,self.system_prompt))
         if fake_input is not None:
             self.history[-2] = construct_user(fake_input)
         chatbot[-1] = (chatbot[-1][0], ai_reply + display_append)
         if fake_input is not None:
-            self.all_token_counts[-1] += count_token(construct_assistant(ai_reply))
+            self.all_token_counts[-1] += count_token(construct_assistant(ai_reply,self.system_prompt))
         else:
             self.all_token_counts[-1] = total_token_count - sum(self.all_token_counts)
         status_text = self.token_message()
@@ -1372,7 +1372,7 @@ class BaseLLMModel:
                         if index % 2 == 0:
                             new_history.append(construct_user(item))
                         else:
-                            new_history.append(construct_assistant(item))
+                            new_history.append(construct_assistant(item,self.system_prompt))
                     saved_json["history"] = new_history
                     logging.info(new_history)
             except:
@@ -1418,8 +1418,12 @@ class BaseLLMModel:
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
             self.load_summary_file()
             logging.info(f"load_chat_history return,hisotry_file_path: {os.path.basename(self.history_file_path)[:-5]}")
+            if self.history_file_path.endswith(".json"):
+                fPath = self.history_file_path[:-5]
+            else:
+                fPath = self.history_file_path
             return (
-                os.path.basename(self.history_file_path)[:-5],
+                fPath,
                 saved_json["system"],
                 gr.update(value=saved_json["chatbot"]),
                 self.single_turn,

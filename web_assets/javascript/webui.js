@@ -34,6 +34,17 @@ function openPromptsBox() {
     showMask("box");
 }
 
+function openCurrentPrompsBox(){
+    chuanhuPopup.classList.add('showBox');
+    popupWrapper.classList.add('showBox');
+    curPromptBox.classList.remove('hideBox');
+    otherBoxes = boxes.filter(box => box.id != 7);
+    otherBoxes.forEach(box => {
+        box.name.classList.add('hideBox');
+    });
+    showMask("box");
+}
+
 function openTrainingBox() {
     chuanhuPopup.classList.add('showBox');
     popupWrapper.classList.add('showBox');

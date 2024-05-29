@@ -197,6 +197,9 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             with gr.Column(min_width=120, scale=1):
                                 movementBtn = gr.Button(
                                     i18n("🗑️ Movements"), elem_id="gr-movement-btn")
+                            with gr.Column(min_width=120, scale=1):
+                                showPromptBtn = gr.Button(
+                                    i18n("🗑️ Prompts"), elem_id="gr-showprompt-btn")
                             with gr.Row(visible=False) as like_dislike_area:
                                 with gr.Column(min_width=20, scale=1):
                                     likeBtn = gr.Button(
@@ -748,7 +751,15 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                     
                     gr.HTML(get_html("close_btn.html").format(
                     obj="box"), elem_classes="close-btn") 
-
+            with gr.Group(elem_id="chuanhu-current-prompt"):
+                with gr.Row():
+                    gr.Markdown("## "+i18n("所使用的Prompt"))
+                    gr.HTML(get_html("close_btn.html").format(
+                        obj="box"), elem_classes="close-btn")
+                with gr.Column():
+                    curPromptTxt = gr.Textbox("current_prompt",lines=20,show_label=False,interactive=True)
+                    
+                
             with gr.Group(elem_id="web-config", visible=False):
                 gr.HTML(get_html('web_config.html').format(
                     enableCheckUpdate_config=check_update,
