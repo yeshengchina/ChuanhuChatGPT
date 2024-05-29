@@ -467,6 +467,20 @@ class BaseLLMModel:
             save_summary_file(self.history_file_path+"_summaries", self,self.character_summarize_prompt)
 
     def reflection(self):
+        # file_path=""
+        # try:
+        #     history_files = get_file_names_by_type(
+        #         dir = os.path.join(HISTORY_DIR, self.user_name), filetypes=[".json"]
+        #     )
+        #     for history_file in history_files:
+        #         file_path = os.path.join(HISTORY_DIR, self.user_name, history_file)
+        #         if not file_path.endswith(".json"):
+        #             file_path += ".json"
+        #         with open(file_path, "r", encoding="utf-8") as f:
+        #             saved_json = json.load(f)
+        # except Exception as e:
+        #     # 没有对话历史或者对话历史解析失败
+        #     logging.error(f"加载Summary失败,file:{file_path},error: {e},异常信息：{e.__str__()}")
         #从上次到最新的聊天记录作为输入，做一次reflection
         if(len(self.history) - self.reflections_last_record_idx <= 0):
             return
