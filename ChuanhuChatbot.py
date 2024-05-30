@@ -835,7 +835,7 @@ with gr.Blocks(theme=small_and_beautiful_theme) as demo:
                             current_model.character_setting["Goal"]
                             ]
             
-        thread = Thread(target=run_scheduler,args=(current_model,))
+        thread = Thread(target=run_scheduler)
         thread.start()
         return user_info, user_name, current_model, toggle_like_btn_visibility(DEFAULT_MODEL), *loaded_stuff, init_history_list(user_name, prepend=current_model.history_file_path.replace(".json",""))
     demo.load(create_greeting, inputs=None, outputs=[
