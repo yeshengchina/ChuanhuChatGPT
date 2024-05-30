@@ -469,55 +469,17 @@ class BaseLLMModel:
             save_summary_file(self.history_file_path+"_summaries", self,self.character_summarize_prompt)
 
     def reflection(self):
-        # file_path=""
-        # try:
-        #     entries = os.listdir(HISTORY_DIR)
-        #     for entry in entries:
-        #         history_files = get_file_names_by_type(
-        #             dir=os.path.join(HISTORY_DIR, entry), filetypes=[".json"]
-        #         )
-        #         for history_file in history_files:
-        #             file_path = os.path.join(HISTORY_DIR, entry, history_file)
-        #             if not file_path.endswith(".json"):
-        #                 file_path += ".json"
-        #             with open(file_path, "r", encoding="utf-8") as f:
-        #                 saved_json = json.load(f)
-        #                 reflection_prompt = saved_json["character_reflection_prompt"]
-        #                 chat = ChatOpenAI(model="gpt-3.5-turbo", temperature=saved_json["temperature"])
-        #                 reflection_prompt = reflection_prompt.replace("{user name}", saved_json["user_identifier"]).replace("{Role}", saved_json["character_setting"]["Role"]).replace(
-        #                     "{Nickname}", saved_json["character_setting"]["Nickname"]).replace("{Background}", saved_json["character_setting"]["Background"]).replace(
-        #                     "{Personality}", saved_json["character_setting"]["Personality"]).replace("{Emotions}", saved_json["character_setting"]["Emotions"]).replace(
-        #                     "{Voice}", saved_json["character_setting"]["Voice"]).replace("{DialogStyle}", saved_json["character_setting"]["DialogStyle"]).replace(
-        #                     "{Facial expression}", saved_json["character_setting"]["Facial expression"]).replace("{Body movements}", saved_json["character_setting"]["Body movements"]).replace(
-        #                         "{Goal}", saved_json["character_setting"]["Goal"])
-        #                 prompt = ChatPromptTemplate.from_messages(
-        #                     messages=reflection_prompt
-        #                 )
-        #                 summary_file = file_path[:-5]+"_summaries.json"
-        #                 if os.path.exists(summary_file):
-        #                     with open(summary_file, "r", encoding="utf-8") as s:
-        #                         summary_saved_json = json.load(s)
-        #                         reflections_last_record_idx = summary_saved_json["reflections_last_record_idx"]
-        #                 else:
-        #                     reflections_last_record_idx = 0
-        #                 histoy_need_reflection = saved_json[reflections_last_record_idx:]
-        #
-        #                 if self.predict_summary_reflection(histoy_need_reflection, self.reflections,
-        #                                                    self.character_reflection_prompt):
-        #                     self.reflections_last_record_idx = len(self.history)
-        #                     save_summary_file(self.history_file_path + "_summaries", self,
-        #                                       self.character_reflection_prompt)
-        #
-        # except Exception as e:
-        #     # 没有对话历史或者对话历史解析失败
-        #     logging.error(f"reflection时加载文件失败,file:{file_path},{summary_file},error: {e},异常信息：{e.__str__()}")
         #从上次到最新的聊天记录作为输入，做一次reflection
-        if(len(self.history) - self.reflections_last_record_idx <= 0):
+        if len(self.history) - self.reflections_last_record_idx <= 0:
             return
-        histoy_need_reflection = self.history[self.reflections_last_record_idx:]
-        if self.predict_summary_reflection(histoy_need_reflection,self.reflections,self.character_reflection_prompt):
+        history_need_reflection = self.history[self.reflections_last_record_idx:]
+        if self.predict_summary_reflection(history_need_reflection,self.reflections,self.character_reflection_prompt):
             self.reflections_last_record_idx = len(self.history)
-            save_summary_file(self.history_file_path+"_summaries", self,self.character_reflection_prompt)
+            if self.history_file_path.endswith(".json"):
+                file_name = self.history_file_path[:-5]+"_summaries"
+            else:
+                file_name = self.history_file_path+"_summaries"
+            save_summary_file(file_name, self,self.character_reflection_prompt)
 
     def retrieve(self,query,texts=[]):
         
@@ -1333,9 +1295,11 @@ class BaseLLMModel:
                 )
             else:
                 history_file_path = self.history_file_path
-            history_file_path += "_summaries"
-            if not self.history_file_path.endswith(".json"):
-                history_file_path += ".json"
+            if self.history_file_path.endswith(".json"):
+                history_file_path = history_file_path[:-5]+"_summaries"
+            else:
+                history_file_path = history_file_path + "_summaries"
+            history_file_path += ".json"
             with open(history_file_path, "r", encoding="utf-8") as f:
                 saved_json = json.load(f)
             
@@ -1346,7 +1310,7 @@ class BaseLLMModel:
             self.reflections = saved_json["reflections"]
             self.reflections_lastday = saved_json.get("reflections_lastday", self.reflections_lastday)
             self.reflections_last_record_idx = saved_json.get("reflections_last_record_idx",self.reflections_last_record_idx)
-            logging.info(f"{self.user_name} 加载Summary完毕,file:{history_file_path},summaries:{self.summaries},summaries idx:{self.summaries_last_record_idx}")
+            logging.info(f"{self.user_name} 加载Summary完毕,file:{history_file_path},summaries idx:{self.summaries_last_record_idx}")
             
             # return (
             #     os.path.basename(self.history_file_path)[:-5],
@@ -1411,6 +1375,8 @@ class BaseLLMModel:
                 saved_json["history"] = saved_json["history"][
                     -len(saved_json["chatbot"]) :
                 ]
+                self.summaries_last_record_idx = self.summaries_last_record_idx -len(saved_json["chatbot"])
+                self.reflections_last_record_idx = self.reflections_last_record_idx -len(saved_json["chatbot"])
                 logging.info(f"Trimmed history: {saved_json['history']}")
             logging.debug(f"{self.user_name} 加载对话历史完毕,hisotry_file_path: {history_file_path},self.history_file_path: {self.history_file_path}")
             self.history = saved_json["history"]
@@ -1446,7 +1412,7 @@ class BaseLLMModel:
             logging.debug(f"character_setting:{self.character_setting} ")
             logging.debug(f"character_dialog_prompt:{self.character_dialog_prompt} ")
             self.load_summary_file()
-            logging.info(f"load_chat_history return,hisotry_file_path: {os.path.basename(self.history_file_path)[:-5]}")
+            logging.info(f"load_chat_history return,hisotry_file_path: {os.path.basename(self.history_file_path)}")
             if self.history_file_path.endswith(".json"):
                 fPath = self.history_file_path[:-5]
             else:

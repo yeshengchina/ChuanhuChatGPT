@@ -30,8 +30,6 @@ import schedule
 from modules.presets import *
 from . import shared
 from modules.config import retrieve_proxy, hide_history_when_not_logged_in
-from .models.OpenAIVision import OpenAIVisionClient
-
 if TYPE_CHECKING:
     from typing import TypedDict
 
@@ -479,7 +477,7 @@ def save_summary_file(filename,model,prompt):
         history_file_path = filename
     else:
         history_file_path = os.path.join(HISTORY_DIR, user_name, filename)
-
+    logging.info(f"保存summaries文件：{history_file_path}")
     with open(history_file_path, "w", encoding="utf-8") as f:
         json.dump(json_s, f, ensure_ascii=False, indent=4)
 
@@ -816,35 +814,10 @@ def transfer_input(inputs):
     )
 
 
-def run_scheduler():
-    # 设置定时任务，例如每10秒更新一次数据
-    schedule.every().day.at("00:00").do(do_reflection)
-    while True:
-        schedule.run_pending()
-        time.sleep(5)
 
 
-def do_reflection():
-    logging.info("0点开始更新模型")
-    file_path = ""
-    try:
-        entries = os.listdir(HISTORY_DIR)
-        for entry in entries:
-            history_files = get_file_names_by_type(
-                dir=os.path.join(HISTORY_DIR, entry), filetypes=[".json"]
-            )
-            for history_file in history_files:
-                file_path = os.path.join(HISTORY_DIR, entry, history_file)
-                if not file_path.endswith(".json"):
-                    file_path += ".json"
-                model = OpenAIVisionClient(
-                    "GPT3.5 Turbo", api_key=os.environ.get("OPENAI_API_KEY", ""), user_name=entry)
-                model.load_chat_history(history_file)
-                model.reflection()
 
-    except Exception as e:
-        # 没有对话历史或者对话历史解析失败
-        logging.error(f"reflection时加载文件失败,file:{file_path},error: {e},异常信息：{e.__str__()}")
+
 
 def update_chuanhu():
     from .repo import background_update

@@ -152,7 +152,7 @@ MODEL_METADATA = {
     "GPT3.5 Turbo": {
         "model_name": "gpt-3.5-turbo",
         "description": "gpt3.5turbo_description",
-        "token_limit": 4096,
+        "token_limit": 8192,
         "placeholder": {
             "logo": "file=web_assets/model_logos/openai-green.webp",
             "slogan": i18n("gpt_default_slogan"),
@@ -161,7 +161,7 @@ MODEL_METADATA = {
     "GPT-4o": {
         "model_name": "gpt-4o",
         "description": "gpt-4o_description",
-        "token_limit": 4096,
+        "token_limit": 16000,
         "placeholder": {
             "logo": "file=web_assets/model_logos/openai-green.webp",
             "slogan": i18n("gpt_default_slogan"),

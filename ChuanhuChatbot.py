@@ -30,6 +30,36 @@ def create_new_model():
     return get_model(model_name=MODELS[DEFAULT_MODEL], access_key=my_api_key)[0]
 
 
+def run_scheduler():
+    # 设置定时任务，例如每10秒更新一次数据
+    schedule.every().day.at("00:00").do(do_reflection)
+    while True:
+        schedule.run_pending()
+        time.sleep(5)
+
+
+def do_reflection():
+    logging.info("0点开始更新模型")
+    file_path = ""
+    try:
+        entries = os.listdir(HISTORY_DIR)
+        for entry in entries:
+            history_files = get_file_names_by_type(
+                dir=os.path.join(HISTORY_DIR, entry), filetypes=[".json"]
+            )
+            for history_file in history_files:
+                file_path = os.path.join(HISTORY_DIR, entry, history_file)
+                if not file_path.endswith(".json"):
+                    file_path += ".json"
+                model = get_model("GPT3.5 Turbo", user_name=entry)[0]
+                model.load_chat_history(history_file)
+                model.reflection()
+
+    except Exception as e:
+        # 没有对话历史或者对话历史解析失败
+        logging.error(f"reflection时加载文件失败,file:{file_path},error: {e},异常信息：{e.__str__()}")
+
+
 with gr.Blocks(theme=small_and_beautiful_theme) as demo:
     user_name = gr.Textbox("", visible=False)
     promptTemplates = gr.State(load_template(get_template_names()[0], mode=2))
